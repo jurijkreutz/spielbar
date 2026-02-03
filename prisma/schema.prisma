@@ -1,0 +1,95 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Admin User für CMS
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Spiele
+model Game {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique
+  shortDescription String  @map("short_description")
+  longDescription String?  @map("long_description")
+  thumbnail       String?
+  status          String   @default("published") // published, draft, coming_soon
+  badge           String?  // Neu, Beliebt, Beta, Coming soon
+  featured        Boolean  @default(false)
+  sortOrder       Int      @default(0) @map("sort_order")
+  gameComponent   String   @map("game_component") // Name der React-Komponente
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("games")
+}
+
+// News/Updates
+model News {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  teaser      String?
+  content     String
+  thumbnail   String?
+  status      String   @default("draft") // draft, published
+  pinned      Boolean  @default(false)
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("news")
+}
+
+// Daily Logic Board - Tägliches, garantiert lösbares Minesweeper
+model DailyBoard {
+  id            String   @id @default(cuid())
+  date          String   @unique // Format: YYYY-MM-DD
+  seed          String   // Seed für deterministische Board-Generierung
+  rows          Int
+  cols          Int
+  mines         Int
+  minePositions String   // JSON Array der Minenpositionen [[row, col], ...]
+  difficulty    String   // easy, medium, hard
+  verified      Boolean  @default(true) // Bestätigt, dass logisch lösbar
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  attempts      DailyAttempt[]
+
+  @@map("daily_boards")
+}
+
+// Spielerversuche für Daily Board (via localStorage-ID)
+model DailyAttempt {
+  id            String   @id @default(cuid())
+  date          String   // Datum des Daily Boards
+  playerId      String   @map("player_id") // localStorage UUID
+  completed     Boolean  @default(false)
+  won           Boolean  @default(false)
+  time          Int?     // Zeit in Sekunden
+  moves         Int?     // Anzahl Züge
+  usedHints     Boolean  @default(false) @map("used_hints")
+  createdAt     DateTime @default(now()) @map("created_at")
+  completedAt   DateTime? @map("completed_at")
+
+  dailyBoard    DailyBoard @relation(fields: [date], references: [date])
+
+  @@unique([date, playerId])
+  @@map("daily_attempts")
+}
+

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200">
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#87CEEB"/>
+      <stop offset="100%" style="stop-color:#D4F1F9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="320" height="200" fill="url(#sky)" rx="16"/>
+
+  <!-- Tower Blocks - matching the game's color palette -->
+  <!-- Block 1 (Base) - Coral Red -->
+  <rect x="90" y="168" width="140" height="18" rx="3" fill="#FF6B6B"/>
+  <rect x="90" y="168" width="140" height="4" fill="rgba(255,255,255,0.35)"/>
+
+  <!-- Block 2 - Salmon -->
+  <rect x="90" y="150" width="140" height="18" rx="3" fill="#FF8E72"/>
+  <rect x="90" y="150" width="140" height="4" fill="rgba(255,255,255,0.35)"/>
+
+  <!-- Block 3 - Sandy Orange -->
+  <rect x="90" y="132" width="140" height="18" rx="3" fill="#FFB366"/>
+  <rect x="90" y="132" width="140" height="4" fill="rgba(255,255,255,0.35)"/>
+
+  <!-- Block 4 - Saffron -->
+  <rect x="90" y="114" width="140" height="18" rx="3" fill="#FFC857"/>
+  <rect x="90" y="114" width="140" height="4" fill="rgba(255,255,255,0.35)"/>
+
+  <!-- Block 5 - Sunflower -->
+  <rect x="90" y="96" width="140" height="18" rx="3" fill="#FFD93D"/>
+  <rect x="90" y="96" width="140" height="4" fill="rgba(255,255,255,0.35)"/>
+
+  <!-- Block 6 - Yellow Green (slightly offset) -->
+  <rect x="95" y="78" width="130" height="18" rx="3" fill="#C9E265"/>
+  <rect x="95" y="78" width="130" height="4" fill="rgba(255,255,255,0.35)"/>
+
+  <!-- Block 7 - Emerald (more offset) -->
+  <rect x="100" y="60" width="115" height="18" rx="3" fill="#6BCB77"/>
+  <rect x="100" y="60" width="115" height="4" fill="rgba(255,255,255,0.35)"/>
+
+  <!-- Block 8 - Tiffany Blue (even more offset) -->
+  <rect x="108" y="42" width="95" height="18" rx="3" fill="#4ECDC4"/>
+  <rect x="108" y="42" width="95" height="4" fill="rgba(255,255,255,0.35)"/>
+
+  <!-- Moving block with motion blur effect -->
+  <rect x="115" y="24" width="80" height="18" rx="3" fill="#45B7D1" opacity="0.4"/>
+  <rect x="130" y="24" width="80" height="18" rx="3" fill="#45B7D1" opacity="0.6"/>
+  <rect x="145" y="24" width="80" height="18" rx="3" fill="#45B7D1"/>
+  <rect x="145" y="24" width="80" height="4" fill="rgba(255,255,255,0.4)"/>
+
+  <!-- Motion arrow -->
+  <path d="M232 33 L240 33 M236 29 L240 33 L236 37" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+
+  <!-- Falling cut-off piece -->
+  <g transform="rotate(15 250 70)">
+    <rect x="228" y="50" width="22" height="18" rx="3" fill="#6BCB77" opacity="0.6"/>
+  </g>
+</svg>
+

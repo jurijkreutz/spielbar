@@ -1,8 +1,51 @@
 @import "tailwindcss";
 
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4f4f5;
+  --foreground: #18181b;
+
+  /* Minesweeper Color Pulse Theme */
+  --cell-hidden-bg: #d4d4d8;
+  --cell-hidden-hover: #a1a1aa;
+  --cell-hidden-border-light: #e4e4e7;
+  --cell-hidden-border-dark: #71717a;
+
+  --cell-revealed-bg: #e8e8ec;
+  --cell-revealed-border: #c4c4cc;
+
+  --cell-flag-color: #dc2626;
+  --cell-mine-bg: #ef4444;
+  --cell-mine-exploded: #b91c1c;
+
+  /* Proof Mode Colors */
+  --proof-safe: #10b981;
+  --proof-mine: #f59e0b;
+  --proof-guess: #f59e0b;
+
+  /* Number Colors - mehr Sättigung */
+  --number-1: #2563eb;
+  --number-2: #16a34a;
+  --number-3: #dc2626;
+  --number-4: #7c3aed;
+  --number-5: #b45309;
+  --number-6: #0891b2;
+  --number-7: #374151;
+  --number-8: #6b7280;
+
+  /* Animation Timing */
+  --pulse-duration: 300ms;
+}
+
+/* Color Pulse Theme (lebendiger) */
+[data-theme="pulse"] {
+  --cell-hidden-bg: linear-gradient(145deg, #d8d5cf, #c9c5be);
+  --cell-hidden-hover: #b8b4ac;
+  --cell-hidden-border-light: #ebe8e2;
+  --cell-hidden-border-dark: #8a8680;
+
+  --cell-revealed-bg: linear-gradient(180deg, #f5f5f0 0%, #e8e8e3 100%);
+  --cell-revealed-border: #d0cfc8;
 }
 
 @theme inline {
@@ -12,15 +55,258 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
 }
+
+/* Prevent text selection during gameplay */
+.select-none {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Disable context menu styling for game cells */
+button {
+  -webkit-touch-callout: none;
+}
+
+/* ===== Color Pulse Animations ===== */
+
+/* Reveal Pulse - subtile Welle beim Aufdecken */
+@keyframes revealPulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+    box-shadow: 0 0 8px 2px rgba(16, 185, 129, 0.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow: none;
+  }
+}
+
+.cell-reveal-pulse {
+  animation: revealPulse var(--pulse-duration) ease-out;
+}
+
+/* Chain Reveal - für Chord-Clicks und Logik-Ketten */
+@keyframes chainReveal {
+  0% {
+    background-color: rgba(16, 185, 129, 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.cell-chain-reveal {
+  animation: chainReveal 400ms ease-out;
+}
+
+/* Proof Safe Highlight */
+@keyframes proofSafeGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 8px 3px rgba(16, 185, 129, 0.6);
+  }
+}
+
+.proof-safe-glow {
+  animation: proofSafeGlow 1.5s ease-in-out infinite;
+}
+
+/* Proof Mine Highlight */
+@keyframes proofMineGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 8px 3px rgba(239, 68, 68, 0.6);
+  }
+}
+
+.proof-mine-glow {
+  animation: proofMineGlow 1.5s ease-in-out infinite;
+}
+
+/* Flag Plant Animation */
+@keyframes flagPlant {
+  0% {
+    transform: scale(0) rotate(-45deg);
+  }
+  60% {
+    transform: scale(1.2) rotate(5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.flag-plant {
+  animation: flagPlant 200ms ease-out;
+}
+
+/* Mine Explode Animation */
+@keyframes mineExplode {
+  0% {
+    transform: scale(1);
+    background-color: var(--cell-mine-bg);
+  }
+  25% {
+    transform: scale(1.15);
+    background-color: var(--cell-mine-exploded);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    background-color: var(--cell-mine-bg);
+  }
+}
+
+.mine-explode {
+  animation: mineExplode 400ms ease-out;
+}
+
+/* Win Celebration - subtile Welle über das ganze Board */
+@keyframes winCelebration {
+  0% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.05);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
+.win-celebration {
+  animation: winCelebration 600ms ease-in-out;
+}
+
+/* ===== Enhanced Cell Styles ===== */
+
+/* Verdeckte Zelle - wärmer */
+.cell-hidden {
+  background: linear-gradient(145deg, #d8d5cf, #c4c0b8);
+  border-top: 2px solid #e8e6e0;
+  border-left: 2px solid #e8e6e0;
+  border-right: 2px solid #8a8680;
+  border-bottom: 2px solid #8a8680;
+  transition: all 100ms ease;
+}
+
+.cell-hidden:hover:not(:disabled) {
+  background: linear-gradient(145deg, #ccc8c0, #b8b4ac);
+  border-top-color: #dcdad4;
+  border-left-color: #dcdad4;
+}
+
+.cell-hidden:active:not(:disabled) {
+  background: linear-gradient(145deg, #c4c0b8, #d8d5cf);
+  border-top: 2px solid #8a8680;
+  border-left: 2px solid #8a8680;
+  border-right: 2px solid #e8e6e0;
+  border-bottom: 2px solid #e8e6e0;
+}
+
+/* Aufgedeckte Zelle - dezente Tiefe */
+.cell-revealed {
+  background: linear-gradient(180deg, #f0f0ec 0%, #e4e4e0 100%);
+  border: 1px solid #c8c8c4;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Flagge - klar und kontrastreich */
+.cell-flag {
+  color: #dc2626;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
+}
+
+/* Mine - stilisiert, nicht schockierend */
+.cell-mine {
+  background: linear-gradient(145deg, #f87171, #dc2626);
+  border: 1px solid #b91c1c;
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cell-mine-exploded {
+  background: linear-gradient(145deg, #fca5a5, #ef4444);
+  box-shadow: 0 0 12px 4px rgba(239, 68, 68, 0.4);
+}
+
+/* Zahlen mit besserer Lesbarkeit */
+.cell-number {
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+  font-weight: 700;
+}
+
+/* ===== Lemonade Stand Animations ===== */
+
+/* Achievement Toast Bounce In */
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-100px) scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(10px) scale(1.05);
+  }
+  70% {
+    transform: translateX(-50%) translateY(-5px) scale(0.98);
+  }
+  100% {
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* ===== Retro Badge Animation (Minecraft-Style) ===== */
+
+@keyframes retroBlink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.retro-badge {
+  background: linear-gradient(135deg, #ffeb3b 0%, #ffc107 100%);
+  color: #000;
+  border: 2px solid #000;
+  box-shadow:
+    2px 2px 0 #000,
+    4px 4px 0 rgba(0, 0, 0, 0.2);
+  animation: retroBlink 1.5s infinite;
+  font-family: monospace;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+

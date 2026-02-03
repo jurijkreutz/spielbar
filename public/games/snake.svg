@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <rect width="100" height="100" rx="16" fill="#0a0a0f"/>
+
+  <!-- Grid lines -->
+  <g stroke="rgba(255,255,255,0.05)" stroke-width="0.5">
+    <line x1="20" y1="0" x2="20" y2="100"/>
+    <line x1="40" y1="0" x2="40" y2="100"/>
+    <line x1="60" y1="0" x2="60" y2="100"/>
+    <line x1="80" y1="0" x2="80" y2="100"/>
+    <line x1="0" y1="20" x2="100" y2="20"/>
+    <line x1="0" y1="40" x2="100" y2="40"/>
+    <line x1="0" y1="60" x2="100" y2="60"/>
+    <line x1="0" y1="80" x2="100" y2="80"/>
+  </g>
+
+  <!-- Snake body segments -->
+  <rect x="22" y="42" width="16" height="16" rx="3" fill="#00994d"/>
+  <rect x="42" y="42" width="16" height="16" rx="3" fill="#00b85a"/>
+  <rect x="62" y="42" width="16" height="16" rx="3" fill="#00cc6a"/>
+
+  <!-- Snake head with glow -->
+  <circle cx="70" cy="50" r="20" fill="url(#snakeGlow)"/>
+  <rect x="62" y="42" width="16" height="16" rx="3" fill="#00ff88"/>
+
+  <!-- Eyes -->
+  <circle cx="73" cy="46" r="2" fill="#0a0a0f"/>
+  <circle cx="73" cy="54" r="2" fill="#0a0a0f"/>
+
+  <!-- Food with glow -->
+  <circle cx="30" cy="70" r="12" fill="url(#foodGlow)"/>
+  <circle cx="30" cy="70" r="6" fill="#ff3366"/>
+  <circle cx="28" cy="68" r="2" fill="rgba(255,255,255,0.4)"/>
+
+  <defs>
+    <radialGradient id="snakeGlow">
+      <stop offset="0%" stop-color="rgba(0,255,136,0.4)"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </radialGradient>
+    <radialGradient id="foodGlow">
+      <stop offset="0%" stop-color="rgba(255,51,102,0.5)"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </radialGradient>
+  </defs>
+</svg>
+

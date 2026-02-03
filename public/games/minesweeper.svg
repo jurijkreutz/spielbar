@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225">
+  <rect width="400" height="225" fill="#f4f4f5"/>
+  <g transform="translate(120, 45)">
+    <rect x="0" y="0" width="40" height="40" fill="#d4d4d8" stroke="#a1a1aa" stroke-width="2"/>
+    <rect x="40" y="0" width="40" height="40" fill="#d4d4d8" stroke="#a1a1aa" stroke-width="2"/>
+    <rect x="80" y="0" width="40" height="40" fill="#d4d4d8" stroke="#a1a1aa" stroke-width="2"/>
+    <rect x="120" y="0" width="40" height="40" fill="#d4d4d8" stroke="#a1a1aa" stroke-width="2"/>
+    <rect x="0" y="40" width="40" height="40" fill="#e4e4e7" stroke="#a1a1aa" stroke-width="2"/>
+    <rect x="40" y="40" width="40" height="40" fill="#e4e4e7" stroke="#a1a1aa" stroke-width="2"/>
+    <rect x="80" y="40" width="40" height="40" fill="#d4d4d8" stroke="#a1a1aa" stroke-width="2"/>
+    <rect x="120" y="40" width="40" height="40" fill="#d4d4d8" stroke="#a1a1aa" stroke-width="2"/>
+    <rect x="0" y="80" width="40" height="40" fill="#e4e4e7" stroke="#a1a1aa" stroke-width="2"/>
+    <rect x="40" y="80" width="40" height="40" fill="#e4e4e7" stroke="#a1a1aa" stroke-width="2"/>
+    <rect x="80" y="80" width="40" height="40" fill="#e4e4e7" stroke="#a1a1aa" stroke-width="2"/>
+    <rect x="120" y="80" width="40" height="40" fill="#d4d4d8" stroke="#a1a1aa" stroke-width="2"/>
+    <text x="20" y="70" text-anchor="middle" font-family="system-ui" font-size="24" font-weight="bold" fill="#3b82f6">1</text>
+    <text x="60" y="70" text-anchor="middle" font-family="system-ui" font-size="24" font-weight="bold" fill="#22c55e">2</text>
+    <text x="20" y="110" text-anchor="middle" font-family="system-ui" font-size="24" font-weight="bold" fill="#3b82f6">1</text>
+    <text x="60" y="110" text-anchor="middle" font-family="system-ui" font-size="24" font-weight="bold" fill="#3b82f6">1</text>
+    <text x="100" y="110" text-anchor="middle" font-family="system-ui" font-size="24" font-weight="bold" fill="#3b82f6">1</text>
+    <polygon points="140,85 140,115 125,100" fill="#ef4444"/>
+    <line x1="140" y1="85" x2="140" y2="120" stroke="#27272a" stroke-width="3"/>
+  </g>
+  <text x="200" y="200" text-anchor="middle" font-family="system-ui" font-size="20" font-weight="600" fill="#27272a">Minesweeper</text>
+</svg>
+
