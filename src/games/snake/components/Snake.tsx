@@ -69,6 +69,13 @@ export function Snake() {
     const handleKeyDown = (e: KeyboardEvent) => {
       console.log('Key pressed:', e.key, 'Status:', gameState.status);
 
+      // R key for restart (Ticket 4.2)
+      if ((e.key === 'r' || e.key === 'R') && gameState.status === 'gameover') {
+        e.preventDefault();
+        startGame();
+        return;
+      }
+
       if (gameState.status === 'idle' || gameState.status === 'gameover') {
         if (e.code === 'Space' || e.key === ' ') {
           e.preventDefault();
@@ -633,10 +640,10 @@ export function Snake() {
           </div>
         )}
 
-        {/* Game Over Overlay */}
+        {/* Game Over Overlay (Ticket 4.1 - Konsistente Endstates) */}
         {gameState.status === 'gameover' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 rounded-lg p-6">
-            <h2 className="text-3xl font-bold text-[#ff3366] mb-2">GAME OVER</h2>
+            <h2 className="text-2xl font-bold text-[#ff3366] mb-2">Runde vorbei.</h2>
             <div className="text-5xl font-bold text-white mb-4">{gameState.score}</div>
 
             {lastRunStats && (
@@ -664,14 +671,28 @@ export function Snake() {
               </div>
             )}
 
-            <button
-              onClick={startGame}
-              className="px-8 py-3 bg-[#00ff88] text-black font-bold rounded-lg hover:bg-[#00cc6a] transition-colors"
-            >
-              Play Again
-            </button>
+            <div className="flex flex-col gap-3 w-full max-w-xs">
+              <button
+                onClick={startGame}
+                className="px-8 py-3 bg-[#00ff88] text-black font-bold rounded-lg hover:bg-[#00cc6a] transition-colors"
+              >
+                Nochmal
+              </button>
+              <a
+                href="/"
+                className="px-8 py-2.5 text-center text-white/70 hover:text-white transition-colors"
+              >
+                Alle Spiele
+              </a>
+              <a
+                href="/games/minesweeper/daily"
+                className="px-6 py-2 text-center text-amber-400 hover:text-amber-300 transition-colors text-sm"
+              >
+                Heute: Daily spielen
+              </a>
+            </div>
             <p className="text-white/40 text-sm mt-4">
-              Press SPACE to restart
+              Drücke <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-xs">R</kbd> für Neustart
             </p>
           </div>
         )}

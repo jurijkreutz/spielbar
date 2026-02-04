@@ -31,6 +31,7 @@ model Game {
   status          String   @default("published") // published, draft, coming_soon
   badge           String?  // Neu, Beliebt, Beta, Coming soon
   featured        Boolean  @default(false)
+  homeFeatured    Boolean  @default(false) @map("home_featured") // Kuratiertes "Empfohlen"-Spiel auf der Startseite (max. 1)
   sortOrder       Int      @default(0) @map("sort_order")
   gameComponent   String   @map("game_component") // Name der React-Komponente
   createdAt       DateTime @default(now()) @map("created_at")
@@ -125,4 +126,3 @@ model DailySudokuAttempt {
   @@unique([date, playerId])
   @@map("daily_sudoku_attempts")
 }
-

@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Game } from '@prisma/client';
 
+type GameWithHomeFeatured = Game & { homeFeatured?: boolean };
+
 interface GameFormProps {
-  game?: Game;
+  game?: GameWithHomeFeatured;
 }
 
 const badges = ['Neu', 'Beliebt', 'Beta', 'Coming soon'];
@@ -29,6 +31,7 @@ export function GameForm({ game }: GameFormProps) {
     status: game?.status || 'draft',
     badge: game?.badge || '',
     featured: game?.featured || false,
+    homeFeatured: game?.homeFeatured || false,
     sortOrder: game?.sortOrder || 0,
     gameComponent: game?.gameComponent || '',
   });
@@ -271,6 +274,26 @@ export function GameForm({ game }: GameFormProps) {
             Als Featured markieren
           </label>
         </div>
+
+        {/* Home Featured (Empfohlen) */}
+        <div className="flex items-center gap-3 md:col-span-2">
+          <input
+            type="checkbox"
+            name="homeFeatured"
+            id="homeFeatured"
+            checked={formData.homeFeatured}
+            onChange={handleChange}
+            className="w-5 h-5 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
+          />
+          <div>
+            <label htmlFor="homeFeatured" className="text-sm font-medium text-zinc-700">
+              Empfohlen (Startseite)
+            </label>
+            <p className="text-xs text-zinc-500">
+              Es kann nur ein Spiel als „Empfohlen“ auf der Startseite ausgewählt sein.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Actions */}
@@ -293,4 +316,3 @@ export function GameForm({ game }: GameFormProps) {
     </form>
   );
 }
-

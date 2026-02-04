@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Board } from './Board';
 import { findProof, type ProofResult } from '../lib/proofSolver';
 import { createBoardFromPositions, getTodayDateString } from '../lib/dailyBoard';
+import { analytics, setDailyCompleted } from '@/lib/analytics';
 import type { CellState, GameState } from '../types/minesweeper';
 
 const PLAYER_ID_KEY = 'spielbar-player-id';
@@ -135,6 +136,13 @@ export function DailyGame() {
   const saveAttempt = useCallback(async (won: boolean) => {
     if (!dailyData || alreadyCompleted) return;
 
+    // Track analytics (Ticket 7.1)
+    analytics.trackGameEnd('minesweeper', 'daily', won ? 'win' : 'lose', time);
+    if (won) {
+      analytics.trackDailyComplete('minesweeper', time, moves, usedHints);
+      setDailyCompleted('minesweeper', { time, usedHints });
+    }
+
     try {
       await fetch('/api/daily', {
         method: 'POST',
@@ -204,6 +212,8 @@ export function DailyGame() {
     // Start game if idle
     if (gameState === 'idle') {
       setGameState('playing');
+      // Track game start (Ticket 7.1)
+      analytics.trackGameStart('minesweeper', 'daily');
     }
 
     setMoves(m => m + 1);
@@ -450,13 +460,13 @@ export function DailyGame() {
         proofTargetCell={showProofHint && currentProof ? [currentProof.row, currentProof.col] : undefined}
       />
 
-      {/* Result */}
+      {/* Result (Ticket 4.1 - Konsistente Endstates) */}
       {(gameState === 'won' || gameState === 'lost') && (
-        <div className={`mt-6 p-4 rounded-xl text-center ${
+        <div className={`mt-6 p-6 rounded-xl text-center ${
           gameState === 'won' ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'
         }`}>
           <p className={`text-lg font-bold ${gameState === 'won' ? 'text-emerald-700' : 'text-red-700'}`}>
-            {gameState === 'won' ? '🎉 Geschafft!' : '💥 Game Over'}
+            {gameState === 'won' ? '🎉 Nice. Runde geschafft.' : '💥 Runde vorbei.'}
           </p>
           <div className="mt-2 flex items-center justify-center gap-4 text-sm">
             <span className="text-zinc-600">Zeit: <strong>{formatTime(time)}</strong></span>
@@ -471,9 +481,30 @@ export function DailyGame() {
               {resultStatus}
             </p>
           )}
-          <p className="mt-3 text-xs text-zinc-500">
-            Komm morgen für ein neues Daily Board wieder!
+
+          {/* Daily Complete Message */}
+          <p className="mt-3 text-sm text-zinc-600">
+            Für heute erledigt.
           </p>
+          <p className="text-xs text-zinc-400">
+            Morgen gibt&apos;s das nächste Rätsel.
+          </p>
+
+          {/* Next Actions (Ticket 4.1) */}
+          <div className="mt-4 flex flex-col sm:flex-row gap-3 justify-center">
+            <a
+              href="/"
+              className="px-6 py-2.5 text-sm font-medium text-zinc-600 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors"
+            >
+              Alle Spiele
+            </a>
+            <a
+              href="/games/sudoku/daily"
+              className="px-6 py-2.5 text-sm font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+            >
+              Daily Sudoku spielen
+            </a>
+          </div>
         </div>
       )}
 
@@ -483,7 +514,7 @@ export function DailyGame() {
           {gameState === 'idle' && !alreadyCompleted && 'Klicke auf ein Feld, um zu starten.'}
           {gameState === 'playing' && 'Linksklick = aufdecken • Rechtsklick = Flagge'}
         </p>
-        {!alreadyCompleted && (
+        {!alreadyCompleted && gameState !== 'won' && gameState !== 'lost' && (
           <p className="mt-1 text-amber-600">
             ⚠️ Kein Neustart möglich – überlege jeden Zug!
           </p>

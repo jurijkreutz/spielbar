@@ -522,9 +522,9 @@ export function StackTower() {
 
         {gameState.status === 'gameover' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 rounded-xl">
-            <div className="text-white text-center">
-              <h2 className="text-3xl font-bold mb-2">Game Over</h2>
-              <div className="text-6xl font-bold mb-2">{gameState.score}</div>
+            <div className="text-white text-center px-6">
+              <h2 className="text-2xl font-bold mb-2">Runde vorbei.</h2>
+              <div className="text-5xl font-bold mb-2">{gameState.score}</div>
               <p className="text-white/70 mb-1">Blöcke gestapelt</p>
               {gameState.score === highScores.best && gameState.score > 0 && (
                 <p className="text-amber-400 font-semibold mb-4">🏆 Neuer Rekord!</p>
@@ -540,9 +540,20 @@ export function StackTower() {
                   }}
                   className="px-8 py-3 bg-white text-zinc-900 font-semibold rounded-lg hover:bg-zinc-100 transition-colors"
                 >
-                  Nochmal spielen
+                  Nochmal
                 </button>
-                <span className="text-sm text-white/60">Klick oder Leertaste</span>
+                <a
+                  href="/"
+                  className="px-8 py-2.5 text-sm text-white/80 hover:text-white transition-colors"
+                >
+                  Alle Spiele
+                </a>
+                <a
+                  href="/games/minesweeper/daily"
+                  className="px-6 py-2 text-sm text-amber-300 hover:text-amber-200 transition-colors"
+                >
+                  Heute: Daily spielen
+                </a>
               </div>
             </div>
           </div>
@@ -564,7 +575,7 @@ export function StackTower() {
       <div className="flex gap-4 text-xs text-zinc-400">
         <span><kbd className="px-1.5 py-0.5 bg-zinc-100 rounded">Space</kbd> Platzieren</span>
         {gameState.status === 'gameover' && (
-          <span><kbd className="px-1.5 py-0.5 bg-zinc-100 rounded">R</kbd> Neustart</span>
+          <span><kbd className="px-1.5 py-0.5 bg-zinc-100 rounded">R</kbd> Nochmal</span>
         )}
       </div>
     </div>

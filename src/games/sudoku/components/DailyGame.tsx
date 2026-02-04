@@ -7,6 +7,7 @@ import { createBoardFromData, getTodayDateString } from '../lib/sudokuGenerator'
 import { Board } from './Board';
 import { NumberPad } from './NumberPad';
 import { DarkModeToggle } from '../hooks/useDarkMode';
+import { analytics, setDailyCompleted } from '@/lib/analytics';
 
 const PLAYER_ID_KEY = 'spielbar-player-id';
 
@@ -181,6 +182,11 @@ export function DailyGame() {
   const saveAttempt = useCallback(async () => {
     if (!dailyData || alreadyCompleted) return;
 
+    // Track analytics (Ticket 7.1)
+    analytics.trackGameEnd('sudoku', 'daily', 'win', time);
+    analytics.trackDailyComplete('sudoku', time, moveCount);
+    setDailyCompleted('sudoku', { time });
+
     try {
       await fetch('/api/daily/sudoku', {
         method: 'POST',
@@ -205,6 +211,8 @@ export function DailyGame() {
     setSelectedCell({ row, col });
     if (!isPlaying) {
       setIsPlaying(true);
+      // Track game start (Ticket 7.1)
+      analytics.trackGameStart('sudoku', 'daily');
     }
   }, [isPlaying, alreadyCompleted]);
 
@@ -386,23 +394,39 @@ export function DailyGame() {
         </div>
       )}
 
-      {/* Win Modal */}
+      {/* Win Modal (Ticket 4.1 - Konsistente Endstates) */}
       {isComplete && !alreadyCompleted && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-600 rounded-2xl p-8 shadow-2xl text-center max-w-sm mx-4">
             <div className="text-5xl mb-4">🎉</div>
             <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2">
-              Geschafft!
+              Nice. Runde geschafft.
             </h2>
-            <p className="text-zinc-600 dark:text-zinc-400 mb-1">
-              Du hast das heutige Sudoku gelöst!
-            </p>
-            <p className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">
+            <p className="text-lg font-semibold text-zinc-900 dark:text-white mb-2">
               Zeit: {formatTime(time)} • Züge: {moveCount}
             </p>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Komm morgen für ein neues Sudoku wieder!
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-2">
+              Für heute erledigt.
             </p>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-6">
+              Morgen gibt&apos;s das nächste Rätsel.
+            </p>
+
+            {/* Next Actions */}
+            <div className="flex flex-col gap-3">
+              <a
+                href="/"
+                className="px-6 py-2.5 text-sm font-medium text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-700 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+              >
+                Alle Spiele
+              </a>
+              <a
+                href="/games/minesweeper/daily"
+                className="px-6 py-2.5 text-sm font-medium text-amber-700 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors"
+              >
+                Daily Logic Board spielen
+              </a>
+            </div>
           </div>
         </div>
       )}

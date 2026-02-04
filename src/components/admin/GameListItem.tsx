@@ -4,8 +4,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Game } from '@prisma/client';
 
+type GameWithHomeFeatured = Game & { homeFeatured?: boolean };
+
 interface GameListItemProps {
-  game: Game;
+  game: GameWithHomeFeatured;
 }
 
 const statusLabels: Record<string, { label: string; className: string }> = {
@@ -33,6 +35,15 @@ export function GameListItem({ game }: GameListItemProps) {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus }),
+    });
+    router.refresh();
+  };
+
+  const handleToggleHomeFeatured = async () => {
+    await fetch(`/api/admin/games/${game.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ homeFeatured: !(game.homeFeatured ?? false) }),
     });
     router.refresh();
   };
@@ -81,16 +92,28 @@ export function GameListItem({ game }: GameListItemProps) {
         )}
       </td>
       <td className="px-4 py-3">
-        <button
-          onClick={handleToggleFeatured}
-          className={`px-2 py-1 text-xs font-medium rounded-full ${
-            game.featured
-              ? 'bg-emerald-100 text-emerald-800'
-              : 'bg-zinc-100 text-zinc-500'
-          }`}
-        >
-          {game.featured ? '⭐ Featured' : 'Nicht featured'}
-        </button>
+        <div className="flex flex-col gap-2 items-start">
+          <button
+            onClick={handleToggleFeatured}
+            className={`px-2 py-1 text-xs font-medium rounded-full ${
+              game.featured
+                ? 'bg-emerald-100 text-emerald-800'
+                : 'bg-zinc-100 text-zinc-500'
+            }`}
+          >
+            {game.featured ? '⭐ Featured' : 'Nicht featured'}
+          </button>
+          <button
+            onClick={handleToggleHomeFeatured}
+            className={`px-2 py-1 text-xs font-medium rounded-full ${
+              (game.homeFeatured ?? false)
+                ? 'bg-zinc-900 text-white'
+                : 'bg-zinc-100 text-zinc-500'
+            }`}
+          >
+            {(game.homeFeatured ?? false) ? '🏠 Empfohlen' : 'Nicht empfohlen'}
+          </button>
+        </div>
       </td>
       <td className="px-4 py-3 text-right">
         <div className="flex items-center justify-end gap-2">
@@ -112,4 +135,3 @@ export function GameListItem({ game }: GameListItemProps) {
     </tr>
   );
 }
-

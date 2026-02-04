@@ -8,6 +8,7 @@ import { useTutorial, TutorialOverlay, TutorialButton } from './Tutorial';
 import { PostGameAnalysis, ProofHint } from './ProofMode';
 import { ThemeToggle } from '@/components/ThemeContext';
 import { findProof, type ProofResult } from '../lib/proofSolver';
+import { analytics } from '@/lib/analytics';
 import type { Difficulty, GameConfig, BestTimes } from '../types/minesweeper';
 import { DIFFICULTY_CONFIGS } from '../types/minesweeper';
 
@@ -102,6 +103,9 @@ export function Game() {
     return findProof(board);
   }, [board, gameState]);
 
+  // Track game start when first cell is clicked
+  const [gameStartTracked, setGameStartTracked] = useState(false);
+
   // Reset proof state when game resets
   const resetGame = useCallback(() => {
     originalResetGame();
@@ -110,18 +114,22 @@ export function Game() {
     setShowProofHint(false);
     setShowPostGameAnalysis(false);
     setHighlightedCells(new Set());
+    setGameStartTracked(false);
   }, [originalResetGame]);
 
   // Show post-game analysis when game ends
   useEffect(() => {
     if (gameState === 'won' || gameState === 'lost') {
+      // Track game end (Ticket 7.1)
+      analytics.trackGameEnd('minesweeper', 'free', gameState === 'won' ? 'win' : 'lose', time);
+
       // Small delay to let the final state render
       const timer = setTimeout(() => {
         setShowPostGameAnalysis(true);
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [gameState]);
+  }, [gameState, time]);
 
   // Check for new best time on win
   useEffect(() => {
@@ -188,12 +196,17 @@ export function Game() {
 
   // Wrap click handlers to also notify tutorial
   const wrappedCellClick = useCallback((row: number, col: number) => {
+    // Track game start on first click (Ticket 7.1)
+    if (!gameStartTracked && gameState === 'idle') {
+      analytics.trackGameStart('minesweeper', 'free');
+      setGameStartTracked(true);
+    }
     handleCellClick(row, col);
     handleTutorialAction('click');
     // Clear proof hint when player makes a move
     setShowProofHint(false);
     setHighlightedCells(new Set());
-  }, [handleCellClick, handleTutorialAction]);
+  }, [handleCellClick, handleTutorialAction, gameStartTracked, gameState]);
 
   const wrappedCellRightClick = useCallback((row: number, col: number) => {
     handleCellRightClick(row, col);

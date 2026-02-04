@@ -61,20 +61,30 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       }
     }
 
-    const game = await prisma.game.update({
-      where: { id },
-      data: {
-        ...(data.name !== undefined && { name: data.name }),
-        ...(data.slug !== undefined && { slug: data.slug }),
-        ...(data.shortDescription !== undefined && { shortDescription: data.shortDescription }),
-        ...(data.longDescription !== undefined && { longDescription: data.longDescription }),
-        ...(data.thumbnail !== undefined && { thumbnail: data.thumbnail }),
-        ...(data.status !== undefined && { status: data.status }),
-        ...(data.badge !== undefined && { badge: data.badge || null }),
-        ...(data.featured !== undefined && { featured: data.featured }),
-        ...(data.sortOrder !== undefined && { sortOrder: data.sortOrder }),
-        ...(data.gameComponent !== undefined && { gameComponent: data.gameComponent }),
-      },
+    const game = await prisma.$transaction(async (tx) => {
+      if (data.homeFeatured === true) {
+        await tx.game.updateMany({
+          where: { NOT: { id } },
+          data: { homeFeatured: false },
+        });
+      }
+
+      return tx.game.update({
+        where: { id },
+        data: {
+          ...(data.name !== undefined && { name: data.name }),
+          ...(data.slug !== undefined && { slug: data.slug }),
+          ...(data.shortDescription !== undefined && { shortDescription: data.shortDescription }),
+          ...(data.longDescription !== undefined && { longDescription: data.longDescription }),
+          ...(data.thumbnail !== undefined && { thumbnail: data.thumbnail }),
+          ...(data.status !== undefined && { status: data.status }),
+          ...(data.badge !== undefined && { badge: data.badge || null }),
+          ...(data.featured !== undefined && { featured: data.featured }),
+          ...(data.homeFeatured !== undefined && { homeFeatured: data.homeFeatured }),
+          ...(data.sortOrder !== undefined && { sortOrder: data.sortOrder }),
+          ...(data.gameComponent !== undefined && { gameComponent: data.gameComponent }),
+        },
+      });
     });
 
     return NextResponse.json(game);
@@ -110,4 +120,3 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     );
   }
 }
-

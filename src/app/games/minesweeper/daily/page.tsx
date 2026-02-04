@@ -3,7 +3,7 @@ import { MinesweeperDailyGame } from '@/games';
 
 export const metadata = {
   title: 'Daily Logic Board | Minesweeper | Spielbar',
-  description: 'Das tägliche Minesweeper-Rätsel – garantiert logisch lösbar, ohne Raten.',
+  description: 'Ein Board pro Tag – für alle gleich. Dieses Rätsel ist ohne Raten lösbar: reine Logik, ein Versuch.',
 };
 
 export default function DailyPage() {
@@ -15,10 +15,10 @@ export default function DailyPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link
-                href="/games/minesweeper"
+                href="/"
                 className="text-zinc-600 hover:text-zinc-900 font-medium flex items-center gap-2"
               >
-                ← Zurück zu Minesweeper
+                ← Zur Übersicht
               </Link>
             </div>
             <Link href="/" className="flex items-center">
@@ -41,11 +41,15 @@ export default function DailyPage() {
         </div>
       </section>
 
-      {/* Info Section */}
+      {/* Info Section (Ticket 6.2) */}
       <section className="py-8">
         <div className="max-w-2xl mx-auto px-4">
           <div className="bg-white rounded-xl border border-zinc-200 p-6">
-            <h3 className="font-bold text-zinc-900 mb-3">Über Daily Logic Boards</h3>
+            <h3 className="font-bold text-zinc-900 mb-3">Über Daily Logic Board</h3>
+            <p className="text-sm text-zinc-600 mb-4">
+              Ein Board pro Tag – für alle gleich. Dieses Rätsel ist ohne Raten lösbar: reine Logik, ein Versuch.
+              Wenn du Hinweise nutzt, wird&apos;s vermerkt – saubere Solves bleiben etwas Besonderes.
+            </p>
             <ul className="space-y-2 text-sm text-zinc-600">
               <li className="flex items-start gap-2">
                 <span className="text-emerald-500">✓</span>
@@ -68,10 +72,18 @@ export default function DailyPage() {
         </div>
       </section>
 
-      {/* Footer */}
+      {/* Footer with back navigation */}
       <footer className="py-8 bg-zinc-900 text-zinc-400">
-        <div className="max-w-6xl mx-auto px-4 text-center text-sm">
-          <p>© {new Date().getFullYear()} Spielbar. Alle Rechte vorbehalten.</p>
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <Link
+              href="/"
+              className="text-zinc-400 hover:text-white transition-colors"
+            >
+              ← Alle Spiele
+            </Link>
+            <p className="text-sm">© {new Date().getFullYear()} Spielbar. Alle Rechte vorbehalten.</p>
+          </div>
         </div>
       </footer>
     </main>

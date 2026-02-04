@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import Link from 'next/link';
 import type { CellState } from '../types/minesweeper';
 import { analyzeMistake, type ProofResult } from '../lib/proofSolver';
 
@@ -12,6 +13,7 @@ type PostGameAnalysisProps = {
   usedProofHint: boolean;
   onClose: () => void;
   onNewGame: () => void;
+  isDaily?: boolean;
 };
 
 export function PostGameAnalysis({
@@ -22,6 +24,7 @@ export function PostGameAnalysis({
   usedProofHint,
   onClose,
   onNewGame,
+  isDaily = false,
 }: PostGameAnalysisProps) {
   const analysis = useMemo(() => {
     if (gameState === 'lost' && explodedCell) {
@@ -32,6 +35,11 @@ export function PostGameAnalysis({
 
 
   const isSkillVerified = gameState === 'won' && !usedProofHint;
+
+  // Ticket 4.1 - Konsistente Endstate Messages
+  const endMessage = gameState === 'won'
+    ? 'Nice. Runde geschafft.'
+    : 'Runde vorbei.';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -48,7 +56,7 @@ export function PostGameAnalysis({
           {gameState === 'won' ? (
             <>
               <div className="text-4xl mb-2">🎉</div>
-              <h2 className="text-xl font-bold text-zinc-800">Gewonnen!</h2>
+              <h2 className="text-xl font-bold text-zinc-800">{endMessage}</h2>
               <p className="text-zinc-500 text-sm mt-1">
                 Zeit: <span className="font-mono font-bold">{time}s</span>
               </p>
@@ -67,7 +75,7 @@ export function PostGameAnalysis({
           ) : (
             <>
               <div className="text-4xl mb-2">💥</div>
-              <h2 className="text-xl font-bold text-zinc-800">Game Over</h2>
+              <h2 className="text-xl font-bold text-zinc-800">{endMessage}</h2>
               <p className="text-zinc-500 text-sm mt-1">
                 Zeit: <span className="font-mono font-bold">{time}s</span>
               </p>
@@ -132,21 +140,43 @@ export function PostGameAnalysis({
           </div>
         )}
 
-        {/* Actions */}
-        <div className="flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2.5 text-sm font-medium text-zinc-600 bg-zinc-100 rounded-lg hover:bg-zinc-200 transition-colors cursor-pointer"
+        {/* Actions (Ticket 4.1 - Konsistente Buttons) */}
+        <div className="flex flex-col gap-3">
+          {/* Nochmal (Primary) */}
+          {!isDaily && (
+            <button
+              onClick={onNewGame}
+              className="w-full px-4 py-3 text-sm font-medium text-white bg-zinc-800 rounded-lg hover:bg-zinc-700 transition-colors cursor-pointer"
+            >
+              Nochmal
+            </button>
+          )}
+
+          {/* Nächstes Spiel */}
+          <Link
+            href="/"
+            className="w-full px-4 py-3 text-sm font-medium text-zinc-600 bg-zinc-100 rounded-lg hover:bg-zinc-200 transition-colors text-center"
           >
-            Schließen
-          </button>
-          <button
-            onClick={onNewGame}
-            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-zinc-800 rounded-lg hover:bg-zinc-700 transition-colors cursor-pointer"
-          >
-            Neues Spiel
-          </button>
+            Alle Spiele
+          </Link>
+
+          {/* Daily spielen (nur wenn nicht im Daily) */}
+          {!isDaily && (
+            <Link
+              href="/games/minesweeper/daily"
+              className="w-full px-4 py-2.5 text-sm font-medium text-amber-700 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors text-center"
+            >
+              Heute: Daily spielen
+            </Link>
+          )}
         </div>
+
+        {/* Keyboard hint */}
+        {!isDaily && (
+          <p className="mt-4 text-xs text-zinc-400 text-center">
+            Drücke <kbd className="px-1.5 py-0.5 bg-zinc-100 rounded text-xs">R</kbd> für Neustart
+          </p>
+        )}
       </div>
     </div>
   );

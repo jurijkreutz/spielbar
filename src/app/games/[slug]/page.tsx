@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { MinesweeperGame, SudokuGame, StackTower, Snake, LemonadeStand } from '@/games';
+import { GAME_DESCRIPTIONS } from '@/lib/gameDescriptions';
 
 // Mapping von gameComponent zu tatsächlichen Komponenten
 const gameComponents: Record<string, React.ComponentType> = {
@@ -26,9 +27,13 @@ export async function generateMetadata({ params }: GamePageProps) {
     return { title: 'Spiel nicht gefunden | Spielbar' };
   }
 
+  // Use new descriptions
+  const descriptions = GAME_DESCRIPTIONS[game.slug];
+  const shortDesc = descriptions?.short || game.shortDescription;
+
   return {
     title: `${game.name} | Spielbar`,
-    description: game.shortDescription,
+    description: shortDesc,
   };
 }
 
@@ -44,6 +49,11 @@ export default async function GamePage({ params }: GamePageProps) {
 
   const GameComponent = gameComponents[game.gameComponent];
 
+  // Get descriptions from constants, fallback to database
+  const descriptions = GAME_DESCRIPTIONS[game.slug];
+  const shortDesc = descriptions?.short || game.shortDescription;
+  const longDesc = descriptions?.long || game.longDescription;
+
   return (
     <main className="min-h-screen bg-zinc-100">
       {/* Header */}
@@ -54,7 +64,7 @@ export default async function GamePage({ params }: GamePageProps) {
               href="/"
               className="text-zinc-600 hover:text-zinc-900 font-medium flex items-center gap-2"
             >
-              ← Zurück zur Übersicht
+              ← Zur Übersicht
             </Link>
             <Link href="/" className="flex items-center">
               <img
@@ -80,7 +90,7 @@ export default async function GamePage({ params }: GamePageProps) {
                 )}
               </div>
               <h1 className="text-3xl font-bold text-zinc-900">{game.name}</h1>
-              <p className="mt-2 text-zinc-600">{game.shortDescription}</p>
+              <p className="mt-2 text-zinc-600">{shortDesc}</p>
             </div>
           </div>
         </div>
@@ -161,31 +171,34 @@ export default async function GamePage({ params }: GamePageProps) {
         </div>
       </section>
 
-      {/* Game Description */}
-      {game.longDescription && (
+      {/* Game Description (Ticket 6) */}
+      {longDesc && (
         <section className="py-8 bg-white border-t border-zinc-200">
           <div className="max-w-3xl mx-auto px-4">
             <h2 className="text-xl font-bold text-zinc-900 mb-4">
               Über {game.name}
             </h2>
-            <div className="prose prose-zinc">
-              {game.longDescription.split('\n').map((paragraph, i) => (
-                <p key={i} className="text-zinc-600 mb-3">
-                  {paragraph}
-                </p>
-              ))}
-            </div>
+            <p className="text-zinc-600 leading-relaxed">
+              {longDesc}
+            </p>
           </div>
         </section>
       )}
 
-      {/* Footer */}
+      {/* Footer with back navigation (Ticket 8 - keine Sackgassen) */}
       <footer className="py-8 bg-zinc-900 text-zinc-400">
-        <div className="max-w-6xl mx-auto px-4 text-center text-sm">
-          <p>© {new Date().getFullYear()} Spielbar. Alle Rechte vorbehalten.</p>
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <Link
+              href="/"
+              className="text-zinc-400 hover:text-white transition-colors"
+            >
+              ← Alle Spiele
+            </Link>
+            <p className="text-sm">© {new Date().getFullYear()} Spielbar. Alle Rechte vorbehalten.</p>
+          </div>
         </div>
       </footer>
     </main>
   );
 }
-

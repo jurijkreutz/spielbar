@@ -53,19 +53,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const game = await prisma.game.create({
-      data: {
-        name: data.name,
-        slug: data.slug,
-        shortDescription: data.shortDescription,
-        longDescription: data.longDescription || null,
-        thumbnail: data.thumbnail || null,
-        status: data.status || 'draft',
-        badge: data.badge || null,
-        featured: data.featured || false,
-        sortOrder: data.sortOrder || 0,
-        gameComponent: data.gameComponent,
-      },
+    const game = await prisma.$transaction(async (tx) => {
+      if (data.homeFeatured) {
+        await tx.game.updateMany({ data: { homeFeatured: false } });
+      }
+
+      return tx.game.create({
+        data: {
+          name: data.name,
+          slug: data.slug,
+          shortDescription: data.shortDescription,
+          longDescription: data.longDescription || null,
+          thumbnail: data.thumbnail || null,
+          status: data.status || 'draft',
+          badge: data.badge || null,
+          featured: data.featured || false,
+          homeFeatured: data.homeFeatured || false,
+          sortOrder: data.sortOrder || 0,
+          gameComponent: data.gameComponent,
+        },
+      });
     });
 
     return NextResponse.json(game, { status: 201 });
@@ -77,4 +84,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
