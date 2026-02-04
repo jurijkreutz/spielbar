@@ -38,7 +38,7 @@ Nutze die Zahlen als Hinweise: Jede Zahl zeigt an, wie viele Minen in den angren
 - Klassisches Gameplay mit modernem Design
 - Proof-Mode für verifizierte Skill-Runs
 - Analyse bei Game Over: War es Pech oder ein Fehler?`,
-        thumbnail: '/games/minesweeper.png',
+        thumbnail: '/games/minesweeper.svg',
         status: 'published',
         badge: 'Beliebt',
         featured: true,
@@ -158,6 +158,40 @@ Starte mit einem simplen Limonadenstand und baue ihn Schritt für Schritt aus. J
     });
 
     console.log('✅ Game created:', lemonadeStand.name);
+
+    // Sudoku als fünftes Spiel
+    const sudoku = await prisma.game.upsert({
+      where: { slug: 'sudoku' },
+      update: {},
+      create: {
+        name: 'Sudoku',
+        slug: 'sudoku',
+        shortDescription: 'Das klassische Zahlenrätsel – modern, klar und kompromisslos sauber.',
+        longDescription: `Sudoku ist das ultimative Denkspiel – reduziert, hochwertig und meditativ.
+
+Fülle das 9×9 Gitter so aus, dass jede Zeile, jede Spalte und jedes 3×3 Feld die Zahlen 1-9 genau einmal enthält.
+
+**Features:**
+- Perfekt ausgerichtetes, cleanes Grid
+- Drei Schwierigkeitsgrade: Easy, Medium, Hard
+- Daily Sudoku – jeden Tag ein neues Rätsel für alle
+- Notizen-Modus für fortgeschrittene Techniken
+- Dark & Light Mode
+
+**Das Gefühl:**
+- Ruhig und fokussiert
+- Modern und erwachsen
+- Eher "Apple-Tool" als "Mobile-Game"`,
+        thumbnail: '/games/sudoku.svg',
+        status: 'published',
+        badge: 'Neu',
+        featured: true,
+        sortOrder: 5,
+        gameComponent: 'Sudoku',
+      },
+    });
+
+    console.log('✅ Game created:', sudoku.name);
 
     // Willkommens-News
     const welcomeNews = await prisma.news.upsert({

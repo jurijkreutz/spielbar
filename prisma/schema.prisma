@@ -93,3 +93,36 @@ model DailyAttempt {
   @@map("daily_attempts")
 }
 
+// Daily Sudoku Board - Tägliches Sudoku-Puzzle
+model DailySudokuBoard {
+  id            String   @id @default(cuid())
+  date          String   @unique // Format: YYYY-MM-DD
+  seed          String   // Seed für deterministische Puzzle-Generierung
+  puzzle        String   // JSON Array des Puzzles [[0,5,0,...], ...]
+  solution      String   // JSON Array der Lösung
+  difficulty    String   // easy, medium, hard
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  attempts      DailySudokuAttempt[]
+
+  @@map("daily_sudoku_boards")
+}
+
+// Spielerversuche für Daily Sudoku (via localStorage-ID)
+model DailySudokuAttempt {
+  id            String   @id @default(cuid())
+  date          String   // Datum des Daily Sudoku
+  playerId      String   @map("player_id") // localStorage UUID
+  completed     Boolean  @default(false)
+  won           Boolean  @default(false)
+  time          Int?     // Zeit in Sekunden
+  moves         Int?     // Anzahl Züge
+  createdAt     DateTime @default(now()) @map("created_at")
+  completedAt   DateTime? @map("completed_at")
+
+  dailySudokuBoard DailySudokuBoard @relation(fields: [date], references: [date])
+
+  @@unique([date, playerId])
+  @@map("daily_sudoku_attempts")
+}
+

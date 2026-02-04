@@ -25,14 +25,17 @@ Alle Spiele werden über die dynamische Route ausgeliefert:
 
 - **Game-Detailseite:** `http://localhost:3000/games/[slug]`
 - **Daily (Minesweeper):** `http://localhost:3000/games/minesweeper/daily`
+- **Daily (Sudoku):** `http://localhost:3000/games/sudoku/daily`
 
 Aktuelle Spiele im Repo:
 
 - **Minesweeper** (`/games/minesweeper`)
+- **Sudoku** (`/games/sudoku`)
 - **Snake** (`/games/snake`)
 - **StackTower** (`/games/stacktower`)
 - **Lemonade Stand** (`/games/lemonadestand`)
 - **Daily Logic Board (Minesweeper)** (`/games/minesweeper/daily`)
+- **Daily Sudoku** (`/games/sudoku/daily`)
 
 ---
 
@@ -82,6 +85,81 @@ Unser erstes Spiel: Der Klassiker komplett neu gedacht.
 
 ---
 
+## 🔢 Sudoku
+
+Sudoku als fokussiertes Logic-Game – schnell zu spielen, aber mit genug Tiefe (Notizen, Undo/Redo, Fehler-Handling), ideal als Daily.
+
+**URL:** `http://localhost:3000/games/sudoku`
+
+### Steuerung
+| Aktion | Eingabe |
+|--------|---------|
+| Zahl setzen | `1–9` |
+| Feld leeren | `Backspace` / `Delete` |
+| Navigation | Pfeiltasten / `W A S D` |
+| Notes/Notizen togglen | `N` |
+| Undo / Redo | `Cmd/Ctrl+Z` / `Shift+Cmd/Ctrl+Z` |
+| Neues Spiel (falls angeboten) | `R` |
+
+> Hinweis: Je nach Modus (Daily vs. Free Play) können Restart/Erzeugung deaktiviert sein.
+
+### Features
+- **Sauberes Grid mit Selection-UX** (Row/Col/Box Highlighting)
+- **Notizen (Pencil Marks)** pro Zelle
+- **Fehleranzeige** (optional / je nach Einstellung)
+- **Undo/Redo** & sichere Eingabelogik
+- **Dark Mode / Theme Support** (auf Plattform-Level)
+
+---
+
+## 📅 Daily Logic Board (Minesweeper)
+
+**URL:** `http://localhost:3000/games/minesweeper/daily`
+
+Das tägliche Minesweeper-Rätsel – wie Wordle, aber für Logik-Fans.
+
+### Konzept
+- **Ein Board pro Tag** – Alle Spieler haben exakt dasselbe Rätsel
+- **Garantiert logisch lösbar** – Kein Raten nötig, reine Logik
+- **Kein Neustart** – Nur ein Versuch pro Tag
+- **Hinweise optional** – Nutzung wird vermerkt
+
+### Schwierigkeit (rotiert nach Wochentag)
+| Tag | Schwierigkeit |
+|-----|---------------|
+| Mo, Di | Leicht (9×9, 10 Minen) |
+| Mi, Do, Fr | Mittel (12×12, 25 Minen) |
+| Sa, So | Schwer (16×16, 45 Minen) |
+
+### Ergebnis-Status
+- **✨ Clean Solve** – Ohne Hinweise gelöst
+- **Solved with Hints** – Mit Proof-Hilfe gelöst
+- Zeit & Züge werden angezeigt
+
+### Technische Details
+- Seeded Random Generator für deterministische Boards
+- Solver prüft bei Generierung, ob Board ohne Guess lösbar ist
+- Spielerversuche werden per localStorage-ID gespeichert
+
+---
+
+## 📅 Daily Sudoku
+
+**URL:** `http://localhost:3000/games/sudoku/daily`
+
+Das tägliche Sudoku – ein Puzzle pro Tag für alle.
+
+### Konzept
+- **Ein Sudoku pro Tag** – deterministisch generiert/ausgeliefert
+- **Ein Versuch pro Tag** – im Daily-Modus kein beliebiges Rerollen
+- **Notizen erlaubt** – aber läuft als Teil deiner Lösung
+
+### Technische Details
+- **Daily-Board Eintrag** in der Datenbank (Prisma) für Lives/Archiv
+- Attempts/Status optional (je nach Implementierung) analog zu Minesweeper-Daily
+
+---
+
 ## 🐍 Snake
 
 Klassisches Snake als modernes Canvas-Game mit Specials und Highscores.
@@ -123,7 +201,7 @@ Das perfekte Flow-Game: ruhig, präzise und hochgradig befriedigend.
 
 ### Features
 - **Perfect Stack** – Pixelgenaue Treffer behalten die volle Breite und geben Bonuspunkte
-- **Perfect Streak** – Mehrere perfekte Züge hintereinander multiplizieren den Bonus
+- **Perfect Streak** – Mehrere perfekte Züge hintereinander multipliziert den Bonus
 - **Dynamische Geschwindigkeit** – Steigt langsam aber stetig mit der Höhe
 - **Himmel-Gradient** – Hintergrund verändert sich dezent mit zunehmender Höhe
 - **Fallende Stücke** – Abgeschnittene Teile fallen physikalisch nach unten
@@ -194,37 +272,6 @@ Das Spiel trackt deinen Fortschritt über alle Spielsitzungen hinweg:
 
 ---
 
-## 📅 Daily Logic Board (Minesweeper)
-
-**URL:** `http://localhost:3000/games/minesweeper/daily`
-
-Das tägliche Minesweeper-Rätsel – wie Wordle, aber für Logik-Fans.
-
-### Konzept
-- **Ein Board pro Tag** – Alle Spieler haben exakt dasselbe Rätsel
-- **Garantiert logisch lösbar** – Kein Raten nötig, reine Logik
-- **Kein Neustart** – Nur ein Versuch pro Tag
-- **Hinweise optional** – Nutzung wird vermerkt
-
-### Schwierigkeit (rotiert nach Wochentag)
-| Tag | Schwierigkeit |
-|-----|---------------|
-| Mo, Di | Leicht (9×9, 10 Minen) |
-| Mi, Do, Fr | Mittel (12×12, 25 Minen) |
-| Sa, So | Schwer (16×16, 45 Minen) |
-
-### Ergebnis-Status
-- **✨ Clean Solve** – Ohne Hinweise gelöst
-- **Solved with Hints** – Mit Proof-Hilfe gelöst
-- Zeit & Züge werden angezeigt
-
-### Technische Details
-- Seeded Random Generator für deterministische Boards
-- Solver prüft bei Generierung, ob Board ohne Guess lösbar ist
-- Spielerversuche werden per localStorage-ID gespeichert
-
----
-
 ## 🔐 Admin-Bereich
 
 ### Login-URL
@@ -258,16 +305,21 @@ src/
 │   ├── page.tsx                          # Startseite (Plattform-Übersicht)
 │   ├── games/
 │   │   ├── [slug]/page.tsx               # Dynamische Spielseiten
-│   │   └── minesweeper/daily/page.tsx    # Daily Logic Board Page
+│   │   ├── minesweeper/daily/page.tsx    # Daily Logic Board Page (Minesweeper)
+│   │   └── sudoku/daily/page.tsx         # Daily Sudoku Page
 │   ├── news/                             # News-Bereich
 │   ├── admin/                            # Admin-CMS
 │   └── api/
-│       ├── daily/route.ts                # Daily Board API
+│       ├── daily/route.ts                # Daily Board API (Minesweeper/Sudoku je nach Routing)
 │       ├── admin/                        # Admin APIs
 │       └── auth/                         # NextAuth
 ├── games/
 │   ├── index.ts                          # zentrale Exporte für Spiele
 │   ├── minesweeper/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   └── lib/
+│   ├── sudoku/
 │   │   ├── components/
 │   │   ├── hooks/
 │   │   └── lib/
@@ -333,3 +385,4 @@ npm run db:seed
 - **Game** – Spiele-Katalog
 - **News** – News/Updates
 - **DailyBoard** / **DailyAttempt** – Daily Minesweeper
+- **SudokuDaily** (oder analoges Modell) – Daily Sudoku (je nach Schema)

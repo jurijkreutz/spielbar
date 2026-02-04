@@ -97,6 +97,81 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* Daily Challenges Section */}
+      <section className="py-12 bg-gradient-to-br from-amber-50 via-white to-blue-50 border-b border-zinc-200">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-8">
+            <span className="inline-block px-3 py-1 bg-amber-200 text-amber-800 text-sm font-bold rounded-full mb-3">
+              📅 DAILY CHALLENGES
+            </span>
+            <h2 className="text-2xl md:text-3xl font-bold text-zinc-900">
+              Tägliche Rätsel
+            </h2>
+            <p className="mt-2 text-zinc-600 max-w-xl mx-auto">
+              Jeden Tag neue Herausforderungen – gleich für alle Spieler
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {/* Daily Minesweeper */}
+            <Link
+              href="/games/minesweeper/daily"
+              className="group bg-white rounded-2xl border border-amber-200 p-6 hover:border-amber-400 hover:shadow-lg transition-all"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center text-3xl">
+                  💣
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
+                      Daily
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-bold text-zinc-900 group-hover:text-amber-700 transition-colors">
+                    Minesweeper Logic Board
+                  </h3>
+                  <p className="text-sm text-zinc-600 mt-1">
+                    Garantiert lösbar ohne Raten
+                  </p>
+                </div>
+                <span className="text-amber-500 group-hover:translate-x-1 transition-transform mt-2">
+                  →
+                </span>
+              </div>
+            </Link>
+
+            {/* Daily Sudoku */}
+            <Link
+              href="/games/sudoku/daily"
+              className="group bg-white rounded-2xl border border-blue-200 p-6 hover:border-blue-400 hover:shadow-lg transition-all"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center text-3xl">
+                  🔢
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                      Daily
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-bold text-zinc-900 group-hover:text-blue-700 transition-colors">
+                    Sudoku
+                  </h3>
+                  <p className="text-sm text-zinc-600 mt-1">
+                    Das tägliche Zahlenrätsel
+                  </p>
+                </div>
+                <span className="text-blue-500 group-hover:translate-x-1 transition-transform mt-2">
+                  →
+                </span>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Games Grid */}
       <section className="py-16">
         <div className="max-w-6xl mx-auto px-4">

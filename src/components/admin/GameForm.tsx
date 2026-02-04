@@ -179,7 +179,7 @@ export function GameForm({ game }: GameFormProps) {
             name="thumbnail"
             value={formData.thumbnail}
             onChange={handleChange}
-            placeholder="/games/minesweeper.png"
+            placeholder="/games/minesweeper.svg"
             className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-zinc-900 focus:border-transparent outline-none"
           />
         </div>

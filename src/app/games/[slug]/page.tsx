@@ -1,11 +1,12 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { MinesweeperGame, StackTower, Snake, LemonadeStand } from '@/games';
+import { MinesweeperGame, SudokuGame, StackTower, Snake, LemonadeStand } from '@/games';
 
 // Mapping von gameComponent zu tatsächlichen Komponenten
 const gameComponents: Record<string, React.ComponentType> = {
   Minesweeper: MinesweeperGame,
+  Sudoku: SudokuGame,
   StackTower: StackTower,
   Snake: Snake,
   LemonadeStand: LemonadeStand,
@@ -85,7 +86,7 @@ export default async function GamePage({ params }: GamePageProps) {
         </div>
       </section>
 
-      {/* Daily Board Banner - nur für Minesweeper */}
+      {/* Daily Board Banner - für Minesweeper */}
       {game.slug === 'minesweeper' && (
         <section className="bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-200">
           <div className="max-w-6xl mx-auto px-4 py-4">
@@ -107,6 +108,35 @@ export default async function GamePage({ params }: GamePageProps) {
                 </div>
               </div>
               <span className="text-amber-600 font-medium group-hover:translate-x-1 transition-transform">
+                Spielen →
+              </span>
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* Daily Sudoku Banner - für Sudoku */}
+      {game.slug === 'sudoku' && (
+        <section className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-200">
+          <div className="max-w-6xl mx-auto px-4 py-4">
+            <Link
+              href="/games/sudoku/daily"
+              className="flex items-center justify-between group"
+            >
+              <div className="flex items-center gap-3">
+                <span className="px-2 py-1 bg-blue-200 text-blue-800 text-xs font-bold rounded-full">
+                  📅 DAILY
+                </span>
+                <div>
+                  <p className="font-semibold text-zinc-900 group-hover:text-blue-700 transition-colors">
+                    Tägliches Sudoku
+                  </p>
+                  <p className="text-sm text-zinc-600">
+                    Jeden Tag ein neues Rätsel • Gleich für alle Spieler
+                  </p>
+                </div>
+              </div>
+              <span className="text-blue-600 font-medium group-hover:translate-x-1 transition-transform">
                 Spielen →
               </span>
             </Link>
