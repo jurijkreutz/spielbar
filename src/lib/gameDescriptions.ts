@@ -29,6 +29,10 @@ export const GAME_DESCRIPTIONS: Record<string, { short: string; long: string }> 
     short: 'Klick, Upgrade, Fortschritt – ohne Stress.',
     long: 'Klick, Upgrade, Fortschritt – ohne Stress. Verkaufe Limonade, investiere smart und sieh zu, wie dein Business wächst. Jeder Schritt fühlt sich nach „mehr" an – und läuft nebenbei weiter.',
   },
+  'brick-breaker': {
+    short: 'Zen-Arcade Brick Breaker: präzise, ruhig, sofort im Flow.',
+    long: 'Zen-Arcade Brick Breaker: ein Paddle, ein Ball, klare Patterns. Fünf kurze Levels mit sanfter Steigerung, kein Zufall. Seltene Powerups geben dir kurz Luft (Multi-Ball, Wider Paddle, Slow), ohne den Rhythmus zu brechen.',
+  },
   snake: {
     short: 'Schnell gestartet, schwer zu stoppen.',
     long: 'Schnell gestartet, schwer zu stoppen. Sammle Items, werde länger, bleib sauber in den Kurven. Klassiker-Gefühl, modernes Tempo.',

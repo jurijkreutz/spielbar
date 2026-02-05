@@ -159,6 +159,37 @@ Starte mit einem simplen Limonadenstand und baue ihn Schritt für Schritt aus. J
 
     console.log('✅ Game created:', lemonadeStand.name);
 
+    // Brick Breaker als sechstes Spiel
+    const brickBreaker = await prisma.game.upsert({
+      where: { slug: 'brick-breaker' },
+      update: {},
+      create: {
+        name: 'Brick Breaker',
+        slug: 'brick-breaker',
+        shortDescription: 'Zen-Arcade Brick Breaker – präzise, ruhig, sofort im Flow.',
+        longDescription: `Brick Breaker, reduziert auf das Wesentliche: ein Paddle, ein Ball, klare Patterns. Die Steuerung ist direkt, die Kollisionen fühlen sich fair an – kein Chaos, nur Flow.
+
+**Features:**
+- 5 kurze, lernbare Levels mit sanfter Steigerung
+- Präzise Kollisionen und kontrollierbares Tempo
+- Seltene Powerups: Multi-Ball, Wider Paddle, Slow
+- Instant Restart mit Space oder Klick
+
+**Das Gefühl:**
+- Zen-Arcade statt Neon
+- 60–180 Sekunden pro Run
+- Noch eine Runde ohne Frust`,
+        thumbnail: '/games/brickbreaker.svg',
+        status: 'published',
+        badge: 'Neu',
+        featured: true,
+        sortOrder: 6,
+        gameComponent: 'BrickBreaker',
+      },
+    });
+
+    console.log('✅ Game created:', brickBreaker.name);
+
     // Sudoku als fünftes Spiel
     const sudoku = await prisma.game.upsert({
       where: { slug: 'sudoku' },

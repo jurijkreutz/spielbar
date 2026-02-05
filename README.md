@@ -34,6 +34,7 @@ Aktuelle Spiele im Repo:
 - **Snake** (`/games/snake`)
 - **StackTower** (`/games/stacktower`)
 - **Lemonade Stand** (`/games/lemonadestand`)
+- **Brick Breaker** (`/games/brick-breaker`)
 - **Daily Logic Board (Minesweeper)** (`/games/minesweeper/daily`)
 - **Daily Sudoku** (`/games/sudoku/daily`)
 
@@ -206,6 +207,32 @@ Das perfekte Flow-Game: ruhig, präzise und hochgradig befriedigend.
 - **Himmel-Gradient** – Hintergrund verändert sich dezent mit zunehmender Höhe
 - **Fallende Stücke** – Abgeschnittene Teile fallen physikalisch nach unten
 - **Sofortiger Restart** – Ein Klick und du bist wieder drin
+
+---
+
+## 🧱 Brick Breaker
+
+Zen-Arcade Brick Breaker: präzise, ruhig, sofort im Flow.
+
+**URL:** `http://localhost:3000/games/brick-breaker`
+
+### Spielprinzip
+- Ein Paddle, ein Ball, klare Patterns
+- 5 kurze Levels mit sanfter Steigerung
+- Seltene Powerups (Multi-Ball, Wider Paddle, Slow)
+- Instant Restart (Space oder Klick)
+
+### Steuerung
+| Aktion | Eingabe |
+|--------|---------|
+| Paddle bewegen | Maus/Trackpad oder Pfeiltasten |
+| Start/Restart | Klick oder `Space` |
+
+### Features
+- **Fair & präzise Kollisionen** – keine WTF-Momente
+- **Anti-Stuck-Logik** – Ball bleibt immer spielbar
+- **Score + Bestscore** – lokal gespeichert
+- **Zen-Visuals** – ruhig, klar, aber lebendig
 
 ---
 

@@ -85,6 +85,7 @@ const DEFAULT_GAME_NAMES: Record<string, string> = {
   stacktower: 'Stack Tower',
   'stack-tower': 'Stack Tower',
   lemonadestand: 'Lemonade Stand',
+  'brick-breaker': 'Brick Breaker',
 };
 
 const DAILY_GAME_NAMES: Record<string, string> = {

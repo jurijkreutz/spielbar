@@ -28,7 +28,7 @@ export default async function Home() {
 
   const featuredGame = games.find((g) => g.homeFeatured) || games.find((g) => g.featured);
 
-  const quickFlowSlugs = new Set(['stack-tower', 'lemonadestand']);
+  const quickFlowSlugs = new Set(['stack-tower', 'lemonadestand', 'brick-breaker']);
   const classicGames = games.filter((game) => !quickFlowSlugs.has(game.slug));
   const quickFlowGames = games.filter((game) => quickFlowSlugs.has(game.slug));
   const continueAssets = games.map((game) => ({

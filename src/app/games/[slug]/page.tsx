@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
-import { MinesweeperGame, SudokuGame, StackTower, Snake, LemonadeStand } from '@/games';
+import { MinesweeperGame, SudokuGame, StackTower, Snake, LemonadeStand, BrickBreaker } from '@/games';
 import { GAME_DESCRIPTIONS } from '@/lib/gameDescriptions';
 import { TrackedLink } from '@/components/platform/TrackedLink';
 
@@ -12,6 +12,7 @@ const gameComponents: Record<string, React.ComponentType> = {
   StackTower: StackTower,
   Snake: Snake,
   LemonadeStand: LemonadeStand,
+  BrickBreaker: BrickBreaker,
 };
 
 interface GamePageProps {

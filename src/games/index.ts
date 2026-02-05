@@ -5,3 +5,4 @@ export { StackTower } from './stacktower';
 export { Snake } from './snake';
 export { LemonadeStand } from './lemonadestand';
 
+export { BrickBreaker } from './brickbreaker';
