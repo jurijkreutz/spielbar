@@ -8,6 +8,7 @@ import { PlayTodayButton } from '@/components/platform/PlayTodayButton';
 import { WeeklyProgress } from '@/components/platform/WeeklyProgress';
 import { ContinueModule } from '@/components/platform/ContinueModule';
 import { TrackedLink } from '@/components/platform/TrackedLink';
+import { RandomBadge } from '@/components/RandomBadge';
 
 export const metadata = {
   title: 'Spielbar | Browsergames. Sofort spielbar.',
@@ -48,11 +49,16 @@ export default async function Home() {
           <div className="text-center">
             {/* Logo */}
             <div className="flex justify-center mb-6">
-              <img
-                src="/spielbar.png"
-                alt="Spielbar"
-                className="h-14 md:h-16"
-              />
+              <div className="relative inline-flex items-center">
+                <img
+                  src="/spielbar.png"
+                  alt="Spielbar"
+                  className="h-14 md:h-16"
+                />
+                <div className="absolute -top-3 -right-10 md:-right-12 rotate-12 pointer-events-none">
+                  <RandomBadge />
+                </div>
+              </div>
             </div>
 
             {/* Headline + Subline (Ticket 1.1) */}

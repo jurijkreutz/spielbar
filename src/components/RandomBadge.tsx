@@ -9,12 +9,7 @@ export function RandomBadge() {
     const badges = ['since 2026', 'made in austria', 'no more office-boredom', 'play now', 'free to play', 'just for fun'];
     const randomText = badges[Math.floor(Math.random() * badges.length)];
 
-    // Nach 1 Sekunde: rendere das Badge mit zufälligem Text
-    const timer = setTimeout(() => {
-      setContent({ text: randomText });
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    setContent({ text: randomText });
   }, []);
 
   // Vor 1 Sekunde: rendere nichts
@@ -28,4 +23,3 @@ export function RandomBadge() {
     </div>
   );
 }
-
