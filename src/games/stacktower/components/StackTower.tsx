@@ -196,11 +196,11 @@ export function StackTower() {
 
   const startRun = useCallback(() => {
     if (gameState.status === 'gameover') {
-      analytics.trackGameRestart('stacktower', 'free');
+      analytics.trackGameRestart('stack-tower', 'free');
     }
-    analytics.trackGameStart('stacktower', 'free', {
+    analytics.trackGameStart('stack-tower', 'free', {
       name: 'Stack Tower',
-      href: '/games/stacktower',
+      href: '/games/stack-tower',
     });
     startGame();
   }, [gameState.status, startGame]);
@@ -577,7 +577,7 @@ export function StackTower() {
                 </button>
                 <TrackedLink
                   href="/"
-                  tracking={{ type: 'game_exit_to_overview', from: 'stacktower' }}
+                  tracking={{ type: 'game_exit_to_overview', from: 'stack-tower' }}
                   className="px-8 py-2.5 text-sm text-white/80 hover:text-white transition-colors text-center"
                 >
                   Alle Spiele

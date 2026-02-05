@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
           shortDescription: data.shortDescription,
           longDescription: data.longDescription || null,
           thumbnail: data.thumbnail || null,
+          continueBackground: data.continueBackground || null,
           status: data.status || 'draft',
           badge: data.badge || null,
           featured: data.featured || false,

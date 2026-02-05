@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Game } from '@prisma/client';
 
-type GameWithHomeFeatured = Game & { homeFeatured?: boolean };
+type GameWithHomeFeatured = Game & { homeFeatured?: boolean; continueBackground?: string | null };
 
 interface GameFormProps {
   game?: GameWithHomeFeatured;
@@ -21,6 +21,8 @@ export function GameForm({ game }: GameFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
   const [formData, setFormData] = useState({
     name: game?.name || '',
@@ -28,6 +30,7 @@ export function GameForm({ game }: GameFormProps) {
     shortDescription: game?.shortDescription || '',
     longDescription: game?.longDescription || '',
     thumbnail: game?.thumbnail || '',
+    continueBackground: game?.continueBackground || '',
     status: game?.status || 'draft',
     badge: game?.badge || '',
     featured: game?.featured || false,
@@ -44,6 +47,38 @@ export function GameForm({ game }: GameFormProps) {
       ...prev,
       [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value,
     }));
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError('');
+
+    try {
+      const body = new FormData();
+      body.append('file', file);
+      body.append('slug', formData.slug || '');
+
+      const res = await fetch('/api/admin/uploads', {
+        method: 'POST',
+        body,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || 'Upload fehlgeschlagen');
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        continueBackground: data.url,
+      }));
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Upload fehlgeschlagen');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const generateSlug = () => {
@@ -185,6 +220,64 @@ export function GameForm({ game }: GameFormProps) {
             placeholder="/games/minesweeper.svg"
             className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-zinc-900 focus:border-transparent outline-none"
           />
+        </div>
+
+        {/* Continue Background Upload */}
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-zinc-700 mb-1">
+            Continue-Hintergrund (Upload)
+          </label>
+          <div className="flex flex-col gap-3">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleUpload}
+              className="w-full px-4 py-2 border border-zinc-300 rounded-lg bg-white"
+            />
+            {uploading && (
+              <p className="text-xs text-zinc-500">Upload läuft...</p>
+            )}
+            {uploadError && (
+              <p className="text-xs text-red-600">{uploadError}</p>
+            )}
+            {formData.continueBackground && (
+              <div className="flex items-center gap-4 flex-wrap">
+                <img
+                  src={formData.continueBackground}
+                  alt="Continue Hintergrund Vorschau"
+                  className="w-32 h-20 object-cover rounded-lg border border-zinc-200"
+                />
+                <button
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, continueBackground: '' }))}
+                  className="text-sm text-zinc-600 hover:text-zinc-900"
+                >
+                  Entfernen
+                </button>
+              </div>
+            )}
+            <p className="text-xs text-zinc-500">
+              Idealerweise 1600×900 oder 1200×675, wird im „Zuletzt gespielt“-Modul geblurrt.
+            </p>
+          </div>
+        </div>
+
+        {/* Continue Background URL */}
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-zinc-700 mb-1">
+            Continue-Hintergrund URL (optional)
+          </label>
+          <input
+            type="text"
+            name="continueBackground"
+            value={formData.continueBackground}
+            onChange={handleChange}
+            placeholder="https://..."
+            className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:ring-2 focus:ring-zinc-900 focus:border-transparent outline-none"
+          />
+          <p className="mt-1 text-xs text-zinc-500">
+            Kann Upload überschreiben oder extern verlinkt werden.
+          </p>
         </div>
 
         {/* Game Component */}

@@ -28,6 +28,7 @@ model Game {
   shortDescription String  @map("short_description")
   longDescription String?  @map("long_description")
   thumbnail       String?
+  continueBackground String? @map("continue_background")
   status          String   @default("published") // published, draft, coming_soon
   badge           String?  // Neu, Beliebt, Beta, Coming soon
   featured        Boolean  @default(false)

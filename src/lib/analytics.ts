@@ -83,6 +83,7 @@ const DEFAULT_GAME_NAMES: Record<string, string> = {
   sudoku: 'Sudoku',
   snake: 'Snake',
   stacktower: 'Stack Tower',
+  'stack-tower': 'Stack Tower',
   lemonadestand: 'Lemonade Stand',
 };
 
@@ -242,7 +243,21 @@ export function getLastPlayed(): LastPlayedEntry | null {
   if (typeof window === 'undefined') return null;
   try {
     const stored = localStorage.getItem(LAST_PLAYED_KEY);
-    return stored ? (JSON.parse(stored) as LastPlayedEntry) : null;
+    if (!stored) return null;
+    const parsed = JSON.parse(stored) as LastPlayedEntry;
+
+    // Legacy slug migration: stacktower -> stack-tower
+    if (parsed?.slug === 'stacktower') {
+      const migrated: LastPlayedEntry = {
+        ...parsed,
+        slug: 'stack-tower',
+        href: parsed.href === '/games/stacktower' ? '/games/stack-tower' : parsed.href,
+      };
+      setLastPlayed(migrated);
+      return migrated;
+    }
+
+    return parsed;
   } catch {
     return null;
   }

@@ -77,6 +77,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
           ...(data.shortDescription !== undefined && { shortDescription: data.shortDescription }),
           ...(data.longDescription !== undefined && { longDescription: data.longDescription }),
           ...(data.thumbnail !== undefined && { thumbnail: data.thumbnail }),
+          ...(data.continueBackground !== undefined && { continueBackground: data.continueBackground || null }),
           ...(data.status !== undefined && { status: data.status }),
           ...(data.badge !== undefined && { badge: data.badge || null }),
           ...(data.featured !== undefined && { featured: data.featured }),

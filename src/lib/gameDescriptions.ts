@@ -21,6 +21,10 @@ export const GAME_DESCRIPTIONS: Record<string, { short: string; long: string }> 
     short: 'Ein Klick, ein Treffer – und plötzlich bist du drin.',
     long: 'Ein Klick, ein Treffer – und plötzlich bist du drin. Platziere Plattformen, baue Höhe auf, halte die Nerven. Alles, was nicht passt, wird abgeschnitten – simpel, präzise, süchtig machend.',
   },
+  'stack-tower': {
+    short: 'Ein Klick, ein Treffer – und plötzlich bist du drin.',
+    long: 'Ein Klick, ein Treffer – und plötzlich bist du drin. Platziere Plattformen, baue Höhe auf, halte die Nerven. Alles, was nicht passt, wird abgeschnitten – simpel, präzise, süchtig machend.',
+  },
   lemonadestand: {
     short: 'Klick, Upgrade, Fortschritt – ohne Stress.',
     long: 'Klick, Upgrade, Fortschritt – ohne Stress. Verkaufe Limonade, investiere smart und sieh zu, wie dein Business wächst. Jeder Schritt fühlt sich nach „mehr" an – und läuft nebenbei weiter.',
@@ -35,4 +39,3 @@ export const GAME_DESCRIPTIONS: Record<string, { short: string; long: string }> 
 export function getGameDescription(slug: string): { short: string; long: string } | null {
   return GAME_DESCRIPTIONS[slug] || null;
 }
-

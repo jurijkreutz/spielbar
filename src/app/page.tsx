@@ -28,9 +28,14 @@ export default async function Home() {
 
   const featuredGame = games.find((g) => g.homeFeatured) || games.find((g) => g.featured);
 
-  const quickFlowSlugs = new Set(['stacktower', 'lemonadestand']);
+  const quickFlowSlugs = new Set(['stack-tower', 'lemonadestand']);
   const classicGames = games.filter((game) => !quickFlowSlugs.has(game.slug));
   const quickFlowGames = games.filter((game) => quickFlowSlugs.has(game.slug));
+  const continueAssets = games.map((game) => ({
+    slug: game.slug,
+    thumbnail: game.thumbnail,
+    continueBackground: (game as { continueBackground?: string | null }).continueBackground || null,
+  }));
 
   return (
     <main className="min-h-screen bg-zinc-50">
@@ -171,7 +176,7 @@ export default async function Home() {
       {/* Games Grid (Ticket 2.1 - unten) */}
       <section id="alle-spiele" className="py-16 scroll-mt-8">
         <div className="max-w-6xl mx-auto px-4 space-y-12">
-          <ContinueModule />
+          <ContinueModule assets={continueAssets} />
           {games.length === 0 ? (
             <p className="text-zinc-600">Noch keine Spiele verfügbar.</p>
           ) : (

@@ -87,6 +87,36 @@ button {
   animation: pageFadeIn 260ms ease-out;
 }
 
+@keyframes continueSweep {
+  0% {
+    left: 0%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+.continue-flow-spark {
+  animation: continueSweep 2.8s ease-in-out infinite;
+  will-change: left, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .continue-flow-spark {
+    animation: none;
+    left: 50%;
+    opacity: 0.6;
+  }
+}
+
 /* ===== Color Pulse Animations ===== */
 
 /* Reveal Pulse - subtile Welle beim Aufdecken */
