@@ -5,6 +5,7 @@ import { useStackTower } from '../hooks/useStackTower';
 import { GAME_CONFIG, SKY_COLORS, BLOCK_COLORS } from '../types/stacktower';
 import { analytics } from '@/lib/analytics';
 import { TrackedLink } from '@/components/platform/TrackedLink';
+import { useTutorial, TutorialOverlay, TutorialButton } from './Tutorial';
 
 // Living Sky Types
 interface Cloud {
@@ -178,6 +179,17 @@ function interpolateColor(score: number): string {
 }
 
 export function StackTower() {
+  const {
+    isActive: tutorialActive,
+    currentStep,
+    currentStepIndex,
+    totalSteps,
+    nextStep,
+    skipTutorial,
+    restartTutorial,
+    handleAction: handleTutorialAction,
+  } = useTutorial();
+
   const { gameState, highScores, startGame, dropBlock } = useStackTower();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -201,12 +213,17 @@ export function StackTower() {
   const lastSkyTimeRef = useRef<number>(0);
 
   const handleInput = useCallback(() => {
-    if (gameState.status === 'idle' || gameState.status === 'gameover') {
+    if (gameState.status === 'idle') {
       startRun();
+      handleTutorialAction('start');
+    } else if (gameState.status === 'gameover') {
+      startRun();
+      handleTutorialAction('restart');
     } else if (gameState.status === 'playing') {
       dropBlock();
+      handleTutorialAction('drop');
     }
-  }, [gameState.status, startRun, dropBlock]);
+  }, [gameState.status, startRun, dropBlock, handleTutorialAction]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -216,12 +233,13 @@ export function StackTower() {
       }
       if (e.code === 'KeyR' && gameState.status === 'gameover') {
         startRun();
+        handleTutorialAction('restart');
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleInput, gameState.status, startRun]);
+  }, [handleInput, gameState.status, startRun, handleTutorialAction]);
 
   // Living Sky Animation Loop
   useEffect(() => {
@@ -522,6 +540,7 @@ export function StackTower() {
                   onClick={(e) => {
                     e.stopPropagation();
                     startRun();
+                    handleTutorialAction('start');
                   }}
                   className="px-8 py-3 bg-white text-zinc-900 font-semibold rounded-lg hover:bg-zinc-100 transition-colors"
                 >
@@ -550,6 +569,7 @@ export function StackTower() {
                   onClick={(e) => {
                     e.stopPropagation();
                     startRun();
+                    handleTutorialAction('restart');
                   }}
                   className="px-8 py-3 bg-white text-zinc-900 font-semibold rounded-lg hover:bg-zinc-100 transition-colors"
                 >
@@ -586,12 +606,28 @@ export function StackTower() {
         )}
       </div>
 
-      <div className="flex gap-4 text-xs text-zinc-400">
-        <span><kbd className="px-1.5 py-0.5 bg-zinc-100 rounded">Space</kbd> Platzieren</span>
-        {gameState.status === 'gameover' && (
-          <span><kbd className="px-1.5 py-0.5 bg-zinc-100 rounded">R</kbd> Nochmal</span>
-        )}
+      <div className="mt-4 text-xs text-zinc-400 text-center max-w-md">
+        <p>Klick oder Space = Platzieren</p>
+        <p className="mt-1">
+          {gameState.status === 'gameover' ? 'R = Nochmal' : 'Perfekte Treffer = Bonuspunkte'}
+          {!tutorialActive && (
+            <>
+              {' • '}
+              <TutorialButton onClick={restartTutorial} />
+            </>
+          )}
+        </p>
       </div>
+
+      {tutorialActive && currentStep && (
+        <TutorialOverlay
+          step={currentStep}
+          stepIndex={currentStepIndex}
+          totalSteps={totalSteps}
+          onNext={nextStep}
+          onSkip={skipTutorial}
+        />
+      )}
     </div>
   );
 }

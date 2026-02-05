@@ -6,6 +6,7 @@ import { GAME_CONFIG, COLORS, SPECIAL_ITEMS } from '../types/snake';
 import type { SnakeSegment, Particle, ActiveEffect } from '../types/snake';
 import { analytics } from '@/lib/analytics';
 import { TrackedLink } from '@/components/platform/TrackedLink';
+import { useTutorial, TutorialOverlay, TutorialButton } from './Tutorial';
 
 // Helper to draw rounded rectangle
 function roundRect(
@@ -53,6 +54,17 @@ function formatTime(ms: number): string {
 
 export function Snake() {
   const {
+    isActive: tutorialActive,
+    currentStep,
+    currentStepIndex,
+    totalSteps,
+    nextStep,
+    skipTutorial,
+    restartTutorial,
+    handleAction: handleTutorialAction,
+  } = useTutorial();
+
+  const {
     gameState,
     highScores,
     lastRunStats,
@@ -70,7 +82,18 @@ export function Snake() {
       href: '/games/snake',
     });
     startGame();
-  }, [startGame]);
+    handleTutorialAction('start');
+  }, [startGame, handleTutorialAction]);
+
+  const handleDirectionChange = useCallback((direction: 'up' | 'down' | 'left' | 'right') => {
+    changeDirection(direction);
+    handleTutorialAction('move');
+  }, [changeDirection, handleTutorialAction]);
+
+  const handlePauseToggle = useCallback(() => {
+    togglePause();
+    handleTutorialAction('pause');
+  }, [togglePause, handleTutorialAction]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -99,7 +122,7 @@ export function Snake() {
 
       if (e.code === 'Escape' || e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
         e.preventDefault();
-        togglePause();
+        handlePauseToggle();
         return;
       }
 
@@ -111,35 +134,35 @@ export function Snake() {
         case 'W':
           e.preventDefault();
           console.log('Changing direction to UP');
-          changeDirection('up');
+          handleDirectionChange('up');
           break;
         case 'ArrowDown':
         case 's':
         case 'S':
           e.preventDefault();
           console.log('Changing direction to DOWN');
-          changeDirection('down');
+          handleDirectionChange('down');
           break;
         case 'ArrowLeft':
         case 'a':
         case 'A':
           e.preventDefault();
           console.log('Changing direction to LEFT');
-          changeDirection('left');
+          handleDirectionChange('left');
           break;
         case 'ArrowRight':
         case 'd':
         case 'D':
           e.preventDefault();
           console.log('Changing direction to RIGHT');
-          changeDirection('right');
+          handleDirectionChange('right');
           break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState.status, startRun, changeDirection, togglePause]);
+  }, [gameState.status, startRun, handleDirectionChange, handlePauseToggle]);
 
   // Touch controls
   useEffect(() => {
@@ -172,9 +195,9 @@ export function Snake() {
       if (Math.abs(dx) < minSwipe && Math.abs(dy) < minSwipe) return;
 
       if (Math.abs(dx) > Math.abs(dy)) {
-        changeDirection(dx > 0 ? 'right' : 'left');
+        handleDirectionChange(dx > 0 ? 'right' : 'left');
       } else {
-        changeDirection(dy > 0 ? 'down' : 'up');
+        handleDirectionChange(dy > 0 ? 'down' : 'up');
       }
     };
 
@@ -185,7 +208,15 @@ export function Snake() {
       container.removeEventListener('touchstart', handleTouchStart);
       container.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [gameState.status, startRun, changeDirection]);
+  }, [gameState.status, startRun, handleDirectionChange]);
+
+  const lastScoreRef = useRef(0);
+  useEffect(() => {
+    if (gameState.score > lastScoreRef.current) {
+      handleTutorialAction('score');
+    }
+    lastScoreRef.current = gameState.score;
+  }, [gameState.score, handleTutorialAction]);
 
   // Draw game
   const draw = useCallback((timestamp: number) => {
@@ -642,7 +673,7 @@ export function Snake() {
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 rounded-lg">
             <h2 className="text-3xl font-bold text-white mb-4">PAUSED</h2>
             <button
-              onClick={togglePause}
+              onClick={handlePauseToggle}
               className="px-8 py-3 bg-[#00ff88] text-black font-bold rounded-lg hover:bg-[#00cc6a] transition-colors"
             >
               Resume
@@ -728,10 +759,28 @@ export function Snake() {
       )}
 
       {/* Controls hint */}
-      <div className="mt-6 text-white/30 text-xs text-center">
+      <div className="mt-6 text-xs text-zinc-400 text-center max-w-md">
         <p>Arrow keys or WASD to move • ESC to pause</p>
-        <p className="mt-1">On mobile: Swipe to change direction</p>
+        <p className="mt-1">
+          On mobile: Swipe to change direction
+          {!tutorialActive && (
+            <>
+              {' • '}
+              <TutorialButton onClick={restartTutorial} />
+            </>
+          )}
+        </p>
       </div>
+
+      {tutorialActive && currentStep && (
+        <TutorialOverlay
+          step={currentStep}
+          stepIndex={currentStepIndex}
+          totalSteps={totalSteps}
+          onNext={nextStep}
+          onSkip={skipTutorial}
+        />
+      )}
     </div>
   );
 }

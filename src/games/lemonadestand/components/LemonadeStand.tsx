@@ -7,8 +7,20 @@ import { UPGRADES } from '../types/lemonadestand';
 import { AchievementsPopup, AchievementToast } from './AchievementsPopup';
 import { analytics } from '@/lib/analytics';
 import { Loader } from '@/components/platform/Loader';
+import { useTutorial, TutorialOverlay, TutorialButton } from './Tutorial';
 
 export function LemonadeStand() {
+  const {
+    isActive: tutorialActive,
+    currentStep,
+    currentStepIndex,
+    totalSteps,
+    nextStep,
+    skipTutorial,
+    restartTutorial,
+    handleAction: handleTutorialAction,
+  } = useTutorial();
+
   const {
     gameState,
     stats,
@@ -98,7 +110,13 @@ export function LemonadeStand() {
       const x = ((e.clientX - rect.left) / rect.width) * 100;
       const y = ((e.clientY - rect.top) / rect.height) * 100;
       handleClick(x, y);
+      handleTutorialAction('click');
     }
+  };
+
+  const handleUpgradePurchase = (upgradeId: string) => {
+    purchaseUpgrade(upgradeId);
+    handleTutorialAction('upgrade');
   };
 
   const filteredUpgrades =
@@ -193,7 +211,10 @@ export function LemonadeStand() {
               </div>
               {/* Achievements Button */}
               <button
-                onClick={() => setAchievementsOpen(true)}
+                onClick={() => {
+                  setAchievementsOpen(true);
+                  handleTutorialAction('achievements');
+                }}
                 className="flex-shrink-0 bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-white font-bold py-2 px-4 rounded-lg shadow transition flex items-center gap-2"
                 title="Erfolge & Records"
               >
@@ -502,6 +523,15 @@ export function LemonadeStand() {
               </div>
             </div>
           </div>
+
+          {!tutorialActive && (
+            <div className="mt-4 text-xs text-center max-w-md mx-auto">
+              <TutorialButton
+                onClick={restartTutorial}
+                className="text-[#136217] hover:text-[#0f4e12] font-medium"
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -586,7 +616,7 @@ export function LemonadeStand() {
                     </div>
                     {!maxed && (
                       <button
-                        onClick={() => purchaseUpgrade(upgrade.id)}
+                        onClick={() => handleUpgradePurchase(upgrade.id)}
                         disabled={!affordable}
                         className={`w-full py-2 px-4 rounded-lg font-bold transition ${
                           affordable
@@ -623,6 +653,16 @@ export function LemonadeStand() {
           </button>
         </div>
       </div>
+
+      {tutorialActive && currentStep && (
+        <TutorialOverlay
+          step={currentStep}
+          stepIndex={currentStepIndex}
+          totalSteps={totalSteps}
+          onNext={nextStep}
+          onSkip={skipTutorial}
+        />
+      )}
     </div>
   );
 }

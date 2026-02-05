@@ -9,6 +9,7 @@ import { NumberPad } from './NumberPad';
 import { Header } from './Header';
 import { analytics } from '@/lib/analytics';
 import { Loader } from '@/components/platform/Loader';
+import { useTutorial, TutorialOverlay, TutorialButton } from './Tutorial';
 
 const BEST_TIMES_KEY = 'sudoku-best-times';
 
@@ -34,6 +35,17 @@ function saveBestTimes(times: BestTimes) {
 }
 
 export function Game() {
+  const {
+    isActive: tutorialActive,
+    currentStep,
+    currentStepIndex,
+    totalSteps,
+    nextStep,
+    skipTutorial,
+    restartTutorial,
+    handleAction: handleTutorialAction,
+  } = useTutorial();
+
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [board, setBoard] = useState<SudokuBoard | null>(null);
   const [selectedCell, setSelectedCell] = useState<Position | null>(null);
@@ -92,6 +104,7 @@ export function Game() {
   // Zelle auswählen
   const selectCell = useCallback((row: number, col: number) => {
     setSelectedCell({ row, col });
+    handleTutorialAction('select');
     if (!isPlaying) {
       if (!isComplete) {
         analytics.trackGameStart('sudoku', 'free', {
@@ -101,7 +114,7 @@ export function Game() {
       }
       setIsPlaying(true);
     }
-  }, [isPlaying, isComplete]);
+  }, [isPlaying, isComplete, handleTutorialAction]);
 
   // Zahl eingeben
   const enterNumber = useCallback((num: number) => {
@@ -115,6 +128,8 @@ export function Game() {
     if (!isPlaying) {
       setIsPlaying(true);
     }
+
+    handleTutorialAction('number');
 
     setMoveCount(c => c + 1);
 
@@ -167,7 +182,7 @@ export function Game() {
 
       return newBoard;
     });
-  }, [selectedCell, board, notesMode, isComplete, isPlaying, bestTimes, difficulty, time]);
+  }, [selectedCell, board, notesMode, isComplete, isPlaying, bestTimes, difficulty, time, handleTutorialAction]);
 
   // Zelle löschen
   const clearCell = useCallback(() => {
@@ -178,6 +193,8 @@ export function Game() {
 
     if (cell.isGiven) return;
 
+    handleTutorialAction('clear');
+
     setBoard(prev => {
       if (!prev) return prev;
       const newBoard = prev.map(r => r.map(c => ({ ...c, notes: new Set(c.notes) })));
@@ -185,7 +202,12 @@ export function Game() {
       newBoard[row][col].notes = new Set();
       return newBoard;
     });
-  }, [selectedCell, board, isComplete]);
+  }, [selectedCell, board, isComplete, handleTutorialAction]);
+
+  const toggleNotesMode = useCallback(() => {
+    setNotesMode(m => !m);
+    handleTutorialAction('notes');
+  }, [handleTutorialAction]);
 
   // Initialisiere Spiel
   useEffect(() => {
@@ -250,7 +272,7 @@ export function Game() {
           break;
         case 'n':
         case 'N':
-          setNotesMode(m => !m);
+          toggleNotesMode();
           return;
         default:
           return;
@@ -263,7 +285,7 @@ export function Game() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedCell, isComplete, board, notesMode, enterNumber, clearCell]);
+  }, [selectedCell, isComplete, board, notesMode, enterNumber, clearCell, toggleNotesMode]);
 
   if (!board) {
     return (
@@ -292,17 +314,26 @@ export function Game() {
       <NumberPad
         onNumber={enterNumber}
         onClear={clearCell}
-        onToggleNotes={() => setNotesMode(m => !m)}
+        onToggleNotes={toggleNotesMode}
         notesMode={notesMode}
         disabled={isComplete}
         numberCounts={numberCounts}
       />
 
       {/* Tastatur-Hinweise */}
-      <div className="text-xs text-zinc-400 dark:text-zinc-500 text-center">
-        <span className="hidden sm:inline">
-          Tastatur: ↑↓←→ Navigation • 1-9 Eingabe • ⌫ Löschen • N Notizen
-        </span>
+      <div className="mt-6 text-xs text-zinc-400 dark:text-zinc-500 text-center max-w-md">
+        <p className="hidden sm:inline">
+          Tastatur: ↑↓←→ Navigation • 1-9 Eingabe
+        </p>
+        <p className="mt-1">
+          ⌫ Löschen • N Notizen
+          {!tutorialActive && (
+            <>
+              {' • '}
+              <TutorialButton onClick={restartTutorial} />
+            </>
+          )}
+        </p>
       </div>
 
       {/* Best Time */}
@@ -310,6 +341,16 @@ export function Game() {
         <div className="text-sm text-zinc-500 dark:text-zinc-400">
           Beste Zeit ({DIFFICULTY_CONFIG[difficulty].name}): {formatTime(bestTimes[difficulty]!)}
         </div>
+      )}
+
+      {tutorialActive && currentStep && (
+        <TutorialOverlay
+          step={currentStep}
+          stepIndex={currentStepIndex}
+          totalSteps={totalSteps}
+          onNext={nextStep}
+          onSkip={skipTutorial}
+        />
       )}
     </div>
   );
