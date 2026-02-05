@@ -4,6 +4,8 @@ import { useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSnake } from '../hooks/useSnake';
 import { GAME_CONFIG, COLORS, SPECIAL_ITEMS } from '../types/snake';
 import type { SnakeSegment, Particle, ActiveEffect } from '../types/snake';
+import { analytics } from '@/lib/analytics';
+import { TrackedLink } from '@/components/platform/TrackedLink';
 
 // Helper to draw rounded rectangle
 function roundRect(
@@ -59,6 +61,17 @@ export function Snake() {
     togglePause,
   } = useSnake();
 
+  const startRun = useCallback((restart: boolean) => {
+    if (restart) {
+      analytics.trackGameRestart('snake', 'free');
+    }
+    analytics.trackGameStart('snake', 'free', {
+      name: 'Snake',
+      href: '/games/snake',
+    });
+    startGame();
+  }, [startGame]);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number | null>(null);
@@ -72,14 +85,14 @@ export function Snake() {
       // R key for restart (Ticket 4.2)
       if ((e.key === 'r' || e.key === 'R') && gameState.status === 'gameover') {
         e.preventDefault();
-        startGame();
+        startRun(true);
         return;
       }
 
       if (gameState.status === 'idle' || gameState.status === 'gameover') {
         if (e.code === 'Space' || e.key === ' ') {
           e.preventDefault();
-          startGame();
+          startRun(gameState.status === 'gameover');
         }
         return;
       }
@@ -126,7 +139,7 @@ export function Snake() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState.status, startGame, changeDirection, togglePause]);
+  }, [gameState.status, startRun, changeDirection, togglePause]);
 
   // Touch controls
   useEffect(() => {
@@ -138,7 +151,7 @@ export function Snake() {
 
     const handleTouchStart = (e: TouchEvent) => {
       if (gameState.status === 'idle' || gameState.status === 'gameover') {
-        startGame();
+        startRun(gameState.status === 'gameover');
         return;
       }
 
@@ -172,7 +185,7 @@ export function Snake() {
       container.removeEventListener('touchstart', handleTouchStart);
       container.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [gameState.status, startGame, changeDirection]);
+  }, [gameState.status, startRun, changeDirection]);
 
   // Draw game
   const draw = useCallback((timestamp: number) => {
@@ -613,7 +626,7 @@ export function Snake() {
             <h1 className="text-4xl font-bold text-[#00ff88] mb-4">SNAKE</h1>
             <p className="text-white/60 mb-8">Modern Classic</p>
             <button
-              onClick={startGame}
+              onClick={() => startRun(false)}
               className="px-8 py-3 bg-[#00ff88] text-black font-bold rounded-lg hover:bg-[#00cc6a] transition-colors"
             >
               Play
@@ -672,18 +685,19 @@ export function Snake() {
             )}
 
             <div className="flex flex-col gap-3 w-full max-w-xs">
-              <button
-                onClick={startGame}
+            <button
+                onClick={() => startRun(true)}
                 className="px-8 py-3 bg-[#00ff88] text-black font-bold rounded-lg hover:bg-[#00cc6a] transition-colors"
               >
                 Nochmal
               </button>
-              <a
+              <TrackedLink
                 href="/"
+                tracking={{ type: 'game_exit_to_overview', from: 'snake' }}
                 className="px-8 py-2.5 text-center text-white/70 hover:text-white transition-colors"
               >
                 Alle Spiele
-              </a>
+              </TrackedLink>
               <a
                 href="/games/minesweeper/daily"
                 className="px-6 py-2 text-center text-amber-400 hover:text-amber-300 transition-colors text-sm"
@@ -721,4 +735,3 @@ export function Snake() {
     </div>
   );
 }
-

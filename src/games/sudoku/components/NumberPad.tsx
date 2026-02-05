@@ -1,5 +1,7 @@
 'use client';
 
+import { InfoTooltip } from '@/components/platform/InfoTooltip';
+
 type NumberPadProps = {
   onNumber: (num: number) => void;
   onClear: () => void;
@@ -60,25 +62,31 @@ export function NumberPad({
       </div>
 
       {/* Aktionen */}
-      <div className="flex gap-2 justify-center">
-        <button
-          className={`
-            px-4 py-2 rounded-lg text-sm font-medium
-            transition-all duration-100
-            ${notesMode
-              ? 'bg-blue-500 text-white'
-              : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-            }
-            border border-zinc-200 dark:border-zinc-600
-            focus:outline-none focus:ring-2 focus:ring-blue-400
-            ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-          `}
-          onClick={onToggleNotes}
-          disabled={disabled}
-          aria-pressed={notesMode}
-        >
-          ✏️ Notizen {notesMode ? 'An' : 'Aus'}
-        </button>
+      <div className="flex gap-2 justify-center items-center">
+        <div className="flex items-center gap-2">
+          <button
+            className={`
+              px-4 py-2 rounded-lg text-sm font-medium
+              transition-all duration-100
+              ${notesMode
+                ? 'bg-blue-500 text-white'
+                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+              }
+              border border-zinc-200 dark:border-zinc-600
+              focus:outline-none focus:ring-2 focus:ring-blue-400
+              ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+            `}
+            onClick={onToggleNotes}
+            disabled={disabled}
+            aria-pressed={notesMode}
+          >
+            ✏️ Notizen {notesMode ? 'An' : 'Aus'}
+          </button>
+          <InfoTooltip
+            tooltipId="sudoku-notes"
+            text="Notizen ein/aus – kleine Zahlen zum Mitdenken."
+          />
+        </div>
 
         <button
           className={`
@@ -99,4 +107,3 @@ export function NumberPad({
     </div>
   );
 }
-

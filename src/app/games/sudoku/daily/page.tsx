@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { SudokuDailyGame } from '@/games';
+import { TrackedLink } from '@/components/platform/TrackedLink';
 
 export const metadata = {
   title: 'Daily Sudoku | Spielbar',
@@ -8,18 +9,19 @@ export const metadata = {
 
 export default function DailySudokuPage() {
   return (
-    <main className="min-h-screen bg-zinc-100 dark:bg-zinc-900">
+    <main className="min-h-screen bg-zinc-100 dark:bg-zinc-900 page-fade">
       {/* Header */}
       <header className="bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link
+              <TrackedLink
                 href="/"
+                tracking={{ type: 'game_exit_to_overview', from: 'sudoku-daily' }}
                 className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white font-medium flex items-center gap-2"
               >
                 ← Zur Übersicht
-              </Link>
+              </TrackedLink>
             </div>
             <Link href="/" className="flex items-center">
               <img
@@ -76,12 +78,13 @@ export default function DailySudokuPage() {
       <footer className="py-8 bg-zinc-900 text-zinc-400">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <Link
+            <TrackedLink
               href="/"
+              tracking={{ type: 'game_exit_to_overview', from: 'sudoku-daily' }}
               className="text-zinc-400 hover:text-white transition-colors"
             >
               ← Alle Spiele
-            </Link>
+            </TrackedLink>
             <p className="text-sm">© {new Date().getFullYear()} Spielbar. Alle Rechte vorbehalten.</p>
           </div>
         </div>
@@ -89,4 +92,3 @@ export default function DailySudokuPage() {
     </main>
   );
 }
-

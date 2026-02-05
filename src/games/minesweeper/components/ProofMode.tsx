@@ -4,6 +4,8 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import type { CellState } from '../types/minesweeper';
 import { analyzeMistake, type ProofResult } from '../lib/proofSolver';
+import { InfoTooltip } from '@/components/platform/InfoTooltip';
+import { TrackedLink } from '@/components/platform/TrackedLink';
 
 type PostGameAnalysisProps = {
   board: CellState[][];
@@ -89,6 +91,10 @@ export function PostGameAnalysis({
             <h3 className="text-sm font-semibold text-zinc-700 mb-3 flex items-center gap-2">
               <span>🔍</span>
               <span>Analyse</span>
+              <InfoTooltip
+                tooltipId="minesweeper-analysis"
+                text="Nach Game Over: War es Pech oder ein ableitbarer Fehler?"
+              />
             </h3>
 
             {/* Was it a guess situation? */}
@@ -153,12 +159,13 @@ export function PostGameAnalysis({
           )}
 
           {/* Nächstes Spiel */}
-          <Link
+          <TrackedLink
             href="/"
+            tracking={{ type: 'game_exit_to_overview', from: 'minesweeper' }}
             className="w-full px-4 py-3 text-sm font-medium text-zinc-600 bg-zinc-100 rounded-lg hover:bg-zinc-200 transition-colors text-center"
           >
             Alle Spiele
-          </Link>
+          </TrackedLink>
 
           {/* Daily spielen (nur wenn nicht im Daily) */}
           {!isDaily && (
@@ -222,4 +229,3 @@ export function ProofHint({ proof, onClose }: ProofHintProps) {
     </div>
   );
 }
-

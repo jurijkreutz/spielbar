@@ -5,6 +5,9 @@ import { Board } from './Board';
 import { findProof, type ProofResult } from '../lib/proofSolver';
 import { createBoardFromPositions, getTodayDateString } from '../lib/dailyBoard';
 import { analytics, setDailyCompleted } from '@/lib/analytics';
+import { Loader } from '@/components/platform/Loader';
+import { InfoTooltip } from '@/components/platform/InfoTooltip';
+import { TrackedLink } from '@/components/platform/TrackedLink';
 import type { CellState, GameState } from '../types/minesweeper';
 
 const PLAYER_ID_KEY = 'spielbar-player-id';
@@ -213,7 +216,10 @@ export function DailyGame() {
     if (gameState === 'idle') {
       setGameState('playing');
       // Track game start (Ticket 7.1)
-      analytics.trackGameStart('minesweeper', 'daily');
+      analytics.trackGameStart('minesweeper', 'daily', {
+        name: 'Daily Logic Board',
+        href: '/games/minesweeper/daily',
+      });
     }
 
     setMoves(m => m + 1);
@@ -344,10 +350,7 @@ export function DailyGame() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-16">
-        <div className="w-8 h-8 border-4 border-zinc-300 border-t-zinc-600 rounded-full animate-spin" />
-        <p className="mt-4 text-zinc-600">Lade Daily Board...</p>
-      </div>
+      <Loader className="py-16" />
     );
   }
 
@@ -423,29 +426,35 @@ export function DailyGame() {
 
       {/* Proof Button */}
       {gameState === 'playing' && !alreadyCompleted && (
-        <div className="relative mb-3">
-          <button
-            onClick={handleProofRequest}
-            disabled={!availableProof}
-            className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
-              availableProof
-                ? 'bg-zinc-700 text-white hover:bg-zinc-600'
-                : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
-            } ${usedHints ? 'ring-1 ring-amber-400' : ''}`}
-            title={availableProof ? 'Zeigt einen logisch beweisbaren Zug' : 'Kein logischer Beweis verfügbar'}
-          >
-            🔍 Hinweis {usedHints && <span className="text-amber-300 ml-1">•</span>}
-          </button>
+        <div className="mb-3 flex items-center gap-2">
+          <div className="relative">
+            <button
+              onClick={handleProofRequest}
+              disabled={!availableProof}
+              className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
+                availableProof
+                  ? 'bg-zinc-700 text-white hover:bg-zinc-600'
+                  : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
+              } ${usedHints ? 'ring-1 ring-amber-400' : ''}`}
+              title={availableProof ? 'Zeigt einen logisch beweisbaren Zug' : 'Kein logischer Beweis verfügbar'}
+            >
+              🔍 Hinweis {usedHints && <span className="text-amber-300 ml-1">•</span>}
+            </button>
 
-          {/* Proof Hint Popup */}
-          {showProofHint && currentProof && (
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-3 bg-zinc-800 text-white text-sm rounded-lg shadow-lg z-10">
-              <p className="font-medium mb-1">
-                {currentProof.type === 'safe' ? '✓ Sicheres Feld' : '⚠ Mine erkannt'}
-              </p>
-              <p className="text-zinc-300 text-xs">{currentProof.reason}</p>
-            </div>
-          )}
+            {/* Proof Hint Popup */}
+            {showProofHint && currentProof && (
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 p-3 bg-zinc-800 text-white text-sm rounded-lg shadow-lg z-10">
+                <p className="font-medium mb-1">
+                  {currentProof.type === 'safe' ? '✓ Sicheres Feld' : '⚠ Mine erkannt'}
+                </p>
+                <p className="text-zinc-300 text-xs">{currentProof.reason}</p>
+              </div>
+            )}
+          </div>
+          <InfoTooltip
+            tooltipId="minesweeper-proof"
+            text="Zeigt dir Züge, die logisch sicher sind."
+          />
         </div>
       )}
 
@@ -492,12 +501,13 @@ export function DailyGame() {
 
           {/* Next Actions (Ticket 4.1) */}
           <div className="mt-4 flex flex-col sm:flex-row gap-3 justify-center">
-            <a
+            <TrackedLink
               href="/"
-              className="px-6 py-2.5 text-sm font-medium text-zinc-600 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors"
+              tracking={{ type: 'game_exit_to_overview', from: 'minesweeper-daily' }}
+              className="px-6 py-2.5 text-sm font-medium text-zinc-600 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors text-center"
             >
               Alle Spiele
-            </a>
+            </TrackedLink>
             <a
               href="/games/sudoku/daily"
               className="px-6 py-2.5 text-sm font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
@@ -523,4 +533,3 @@ export function DailyGame() {
     </div>
   );
 }
-

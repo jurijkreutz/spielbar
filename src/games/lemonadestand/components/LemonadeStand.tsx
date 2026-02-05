@@ -5,6 +5,8 @@ import { useLemonadeStand } from '../hooks/useLemonadeStand';
 import { useAchievements } from '../hooks/useAchievements';
 import { UPGRADES } from '../types/lemonadestand';
 import { AchievementsPopup, AchievementToast } from './AchievementsPopup';
+import { analytics } from '@/lib/analytics';
+import { Loader } from '@/components/platform/Loader';
 
 export function LemonadeStand() {
   const {
@@ -38,6 +40,17 @@ export function LemonadeStand() {
     'product' | 'stand' | 'ambiance' | 'all'
   >('all');
   const [achievementsOpen, setAchievementsOpen] = useState(false);
+  const hasTrackedStart = useRef(false);
+
+  useEffect(() => {
+    if (isLoaded && !hasTrackedStart.current) {
+      analytics.trackGameStart('lemonadestand', 'free', {
+        name: 'Lemonade Stand',
+        href: '/games/lemonadestand',
+      });
+      hasTrackedStart.current = true;
+    }
+  }, [isLoaded]);
 
   const gameAreaRef = useRef<HTMLDivElement>(null);
 
@@ -96,7 +109,11 @@ export function LemonadeStand() {
   if (!isLoaded) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-sky-400 to-sky-200">
-        <div className="text-2xl text-white">Lädt...</div>
+        <Loader
+          className="py-8"
+          textClassName="text-white"
+          spinnerClassName="border-white/40 border-t-white"
+        />
       </div>
     );
   }

@@ -9,6 +9,7 @@ import { PostGameAnalysis, ProofHint } from './ProofMode';
 import { ThemeToggle } from '@/components/ThemeContext';
 import { findProof, type ProofResult } from '../lib/proofSolver';
 import { analytics } from '@/lib/analytics';
+import { InfoTooltip } from '@/components/platform/InfoTooltip';
 import type { Difficulty, GameConfig, BestTimes } from '../types/minesweeper';
 import { DIFFICULTY_CONFIGS } from '../types/minesweeper';
 
@@ -108,6 +109,7 @@ export function Game() {
 
   // Reset proof state when game resets
   const resetGame = useCallback(() => {
+    analytics.trackGameRestart('minesweeper', 'free');
     originalResetGame();
     setUsedProofHint(false);
     setCurrentProof(null);
@@ -198,7 +200,10 @@ export function Game() {
   const wrappedCellClick = useCallback((row: number, col: number) => {
     // Track game start on first click (Ticket 7.1)
     if (!gameStartTracked && gameState === 'idle') {
-      analytics.trackGameStart('minesweeper', 'free');
+      analytics.trackGameStart('minesweeper', 'free', {
+        name: 'Minesweeper',
+        href: '/games/minesweeper',
+      });
       setGameStartTracked(true);
     }
     handleCellClick(row, col);
@@ -246,27 +251,33 @@ export function Game() {
       />
 
       {/* Proof Button */}
-      <div className="relative mb-3">
-        {gameState === 'playing' && (
-          <button
-            onClick={handleProofRequest}
-            disabled={!availableProof}
-            className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
-              availableProof
-                ? 'bg-zinc-700 text-white hover:bg-zinc-600'
-                : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
-            } ${usedProofHint ? 'ring-1 ring-amber-400' : ''}`}
-            title={availableProof ? 'Zeigt einen logisch beweisbaren Zug (P)' : 'Kein logischer Beweis verfügbar'}
-          >
-            🔍 Proof {usedProofHint && <span className="text-amber-300 ml-1">•</span>}
-          </button>
-        )}
+      {gameState === 'playing' && (
+        <div className="mb-3 flex items-center gap-2">
+          <div className="relative">
+            <button
+              onClick={handleProofRequest}
+              disabled={!availableProof}
+              className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
+                availableProof
+                  ? 'bg-zinc-700 text-white hover:bg-zinc-600'
+                  : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
+              } ${usedProofHint ? 'ring-1 ring-amber-400' : ''}`}
+              title={availableProof ? 'Zeigt einen logisch beweisbaren Zug (P)' : 'Kein logischer Beweis verfügbar'}
+            >
+              🔍 Proof {usedProofHint && <span className="text-amber-300 ml-1">•</span>}
+            </button>
 
-        {/* Proof Hint Popup */}
-        {showProofHint && currentProof && (
-          <ProofHint proof={currentProof} onClose={closeProofHint} />
-        )}
-      </div>
+            {/* Proof Hint Popup */}
+            {showProofHint && currentProof && (
+              <ProofHint proof={currentProof} onClose={closeProofHint} />
+            )}
+          </div>
+          <InfoTooltip
+            tooltipId="minesweeper-proof"
+            text="Zeigt dir Züge, die logisch sicher sind."
+          />
+        </div>
+      )}
 
       <Board
         board={board}

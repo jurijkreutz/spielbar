@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { analytics } from '@/lib/analytics';
 
 interface DailyCardProps {
   game: 'minesweeper' | 'sudoku';
@@ -63,6 +64,8 @@ const gameConfig = {
 
 export function DailyCard({ game }: DailyCardProps) {
   const [status, setStatus] = useState<'loading' | 'open' | 'completed'>('loading');
+  const linkRef = useRef<HTMLDivElement | null>(null);
+  const impressionTracked = useRef(false);
 
   useEffect(() => {
     async function checkStatus() {
@@ -99,50 +102,76 @@ export function DailyCard({ game }: DailyCardProps) {
     checkStatus();
   }, [game]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (impressionTracked.current) return;
+    const element = linkRef.current;
+    if (!element || !('IntersectionObserver' in window)) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !impressionTracked.current) {
+            analytics.trackDailyCardImpression(game);
+            impressionTracked.current = true;
+            observer.disconnect();
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [game]);
+
   const config = gameConfig[game];
   const isCompleted = status === 'completed';
   const showStatus = status !== 'loading';
 
   return (
-    <Link
-      href={config.href}
-      className={`group bg-white rounded-2xl border ${config.borderColor} p-6 ${config.borderHover} hover:shadow-lg transition-all`}
-    >
-      <div className="flex items-start gap-4">
-        <div className={`w-16 h-16 bg-gradient-to-br ${config.gradientFrom} ${config.gradientTo} rounded-xl flex items-center justify-center text-3xl flex-shrink-0`}>
-          {config.emoji}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className={`px-2 py-0.5 ${config.badgeBg} ${config.badgeText} text-xs font-medium rounded-full`}>
-              Daily
-            </span>
-            {showStatus && (
-              <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                isCompleted
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : 'bg-zinc-100 text-zinc-600'
-              }`}>
-                {isCompleted ? 'Erledigt ✅' : 'Heute offen'}
+    <div ref={linkRef}>
+      <Link
+        href={config.href}
+        onClick={() => analytics.trackDailyCardClick(game)}
+        className={`group block bg-white rounded-2xl border ${config.borderColor} p-6 ${config.borderHover} hover:shadow-lg transition-all`}
+      >
+        <div className="flex items-start gap-4">
+          <div className={`w-16 h-16 bg-gradient-to-br ${config.gradientFrom} ${config.gradientTo} rounded-xl flex items-center justify-center text-3xl flex-shrink-0`}>
+            {config.emoji}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className={`px-2 py-0.5 ${config.badgeBg} ${config.badgeText} text-xs font-medium rounded-full`}>
+                Heute
               </span>
+              {showStatus && (
+                <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
+                  isCompleted
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-zinc-100 text-zinc-600'
+                }`}>
+                  {isCompleted ? 'Erledigt ✅' : 'Heute offen'}
+                </span>
+              )}
+            </div>
+            <h3 className={`text-lg font-bold text-zinc-900 ${config.hoverText} transition-colors`}>
+              {config.title}
+            </h3>
+            <p className="text-sm text-zinc-600 mt-1">
+              {config.description}
+            </p>
+            {showStatus && (
+              <p className="text-xs text-zinc-400 mt-2">
+                {isCompleted ? config.completedText : config.openText}
+              </p>
             )}
           </div>
-          <h3 className={`text-lg font-bold text-zinc-900 ${config.hoverText} transition-colors`}>
-            {config.title}
-          </h3>
-          <p className="text-sm text-zinc-600 mt-1">
-            {config.description}
-          </p>
-          {showStatus && (
-            <p className="text-xs text-zinc-400 mt-2">
-              {isCompleted ? config.completedText : config.openText}
-            </p>
-          )}
+          <span className={`${config.arrowColor} group-hover:translate-x-1 transition-transform mt-2 flex-shrink-0`}>
+            →
+          </span>
         </div>
-        <span className={`${config.arrowColor} group-hover:translate-x-1 transition-transform mt-2 flex-shrink-0`}>
-          →
-        </span>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }

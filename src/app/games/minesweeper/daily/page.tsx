@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { MinesweeperDailyGame } from '@/games';
+import { TrackedLink } from '@/components/platform/TrackedLink';
 
 export const metadata = {
   title: 'Daily Logic Board | Minesweeper | Spielbar',
@@ -8,18 +9,19 @@ export const metadata = {
 
 export default function DailyPage() {
   return (
-    <main className="min-h-screen bg-zinc-100">
+    <main className="min-h-screen bg-zinc-100 page-fade">
       {/* Header */}
       <header className="bg-white border-b border-zinc-200">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link
+              <TrackedLink
                 href="/"
+                tracking={{ type: 'game_exit_to_overview', from: 'minesweeper-daily' }}
                 className="text-zinc-600 hover:text-zinc-900 font-medium flex items-center gap-2"
               >
                 ← Zur Übersicht
-              </Link>
+              </TrackedLink>
             </div>
             <Link href="/" className="flex items-center">
               <img
@@ -76,12 +78,13 @@ export default function DailyPage() {
       <footer className="py-8 bg-zinc-900 text-zinc-400">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <Link
+            <TrackedLink
               href="/"
+              tracking={{ type: 'game_exit_to_overview', from: 'minesweeper-daily' }}
               className="text-zinc-400 hover:text-white transition-colors"
             >
               ← Alle Spiele
-            </Link>
+            </TrackedLink>
             <p className="text-sm">© {new Date().getFullYear()} Spielbar. Alle Rechte vorbehalten.</p>
           </div>
         </div>
@@ -89,4 +92,3 @@ export default function DailyPage() {
     </main>
   );
 }
-

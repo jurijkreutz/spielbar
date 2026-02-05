@@ -7,6 +7,8 @@ import { generateSudoku } from '../lib/sudokuGenerator';
 import { Board } from './Board';
 import { NumberPad } from './NumberPad';
 import { Header } from './Header';
+import { analytics } from '@/lib/analytics';
+import { Loader } from '@/components/platform/Loader';
 
 const BEST_TIMES_KEY = 'sudoku-best-times';
 
@@ -75,13 +77,31 @@ export function Game() {
     }
   }, [difficulty]);
 
+  const handleNewGame = useCallback(() => {
+    analytics.trackGameRestart('sudoku', 'free');
+    newGame();
+  }, [newGame]);
+
+  const handleDifficultyChange = useCallback((newDifficulty: Difficulty) => {
+    if (initialized) {
+      analytics.trackGameRestart('sudoku', 'free');
+    }
+    newGame(newDifficulty);
+  }, [initialized, newGame]);
+
   // Zelle auswählen
   const selectCell = useCallback((row: number, col: number) => {
     setSelectedCell({ row, col });
     if (!isPlaying) {
+      if (!isComplete) {
+        analytics.trackGameStart('sudoku', 'free', {
+          name: 'Sudoku',
+          href: '/games/sudoku',
+        });
+      }
       setIsPlaying(true);
     }
-  }, [isPlaying]);
+  }, [isPlaying, isComplete]);
 
   // Zahl eingeben
   const enterNumber = useCallback((num: number) => {
@@ -247,9 +267,7 @@ export function Game() {
 
   if (!board) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-zinc-500">Lädt...</div>
-      </div>
+      <Loader className="p-8" />
     );
   }
 
@@ -257,11 +275,11 @@ export function Game() {
     <div className="flex flex-col items-center gap-6 relative">
       <Header
         difficulty={difficulty}
-        onDifficultyChange={newGame}
+        onDifficultyChange={handleDifficultyChange}
         time={time}
         moveCount={moveCount}
         isComplete={isComplete}
-        onNewGame={() => newGame()}
+        onNewGame={handleNewGame}
       />
 
       <Board

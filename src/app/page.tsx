@@ -5,6 +5,9 @@ import { NewsCard } from '@/components/platform/NewsCard';
 import { DailyCard } from '@/components/platform/DailyCard';
 import { LandingTracker } from '@/components/platform/LandingTracker';
 import { PlayTodayButton } from '@/components/platform/PlayTodayButton';
+import { WeeklyProgress } from '@/components/platform/WeeklyProgress';
+import { ContinueModule } from '@/components/platform/ContinueModule';
+import { TrackedLink } from '@/components/platform/TrackedLink';
 
 export const metadata = {
   title: 'Spielbar | Browsergames. Sofort spielbar.',
@@ -24,6 +27,10 @@ export default async function Home() {
   });
 
   const featuredGame = games.find((g) => g.homeFeatured) || games.find((g) => g.featured);
+
+  const quickFlowSlugs = new Set(['stacktower', 'lemonadestand']);
+  const classicGames = games.filter((game) => !quickFlowSlugs.has(game.slug));
+  const quickFlowGames = games.filter((game) => quickFlowSlugs.has(game.slug));
 
   return (
     <main className="min-h-screen bg-zinc-50">
@@ -73,13 +80,16 @@ export default async function Home() {
       {/* Daily Challenges Section (Ticket 2.1 - oben, vor Featured) */}
       <section className="py-12 bg-gradient-to-br from-amber-50 via-white to-blue-50 border-b border-zinc-200">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-zinc-900">
-              Daily
-            </h2>
-            <p className="mt-2 text-zinc-600">
-              Zwei tägliche Rätsel – für alle gleich.
-            </p>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+            <div className="text-center md:text-left">
+              <h2 className="text-2xl md:text-3xl font-bold text-zinc-900">
+                Daily
+              </h2>
+              <p className="mt-2 text-zinc-600">
+                Zwei tägliche Rätsel – für alle gleich.
+              </p>
+            </div>
+            <WeeklyProgress className="w-full md:w-auto" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
@@ -103,8 +113,9 @@ export default async function Home() {
             </div>
 
             <div className="max-w-5xl mx-auto">
-              <Link
+              <TrackedLink
                 href={`/games/${featuredGame.slug}`}
+                tracking={{ type: 'featured_card_click', slug: featuredGame.slug }}
                 className="group block"
               >
                 <div className="relative bg-white rounded-3xl shadow-xl shadow-zinc-200/50 overflow-hidden border border-zinc-100 hover:shadow-2xl hover:shadow-zinc-300/50 transition-all duration-300 hover:-translate-y-1">
@@ -151,7 +162,7 @@ export default async function Home() {
                     </div>
                   </div>
                 </div>
-              </Link>
+              </TrackedLink>
             </div>
           </div>
         </section>
@@ -159,16 +170,39 @@ export default async function Home() {
 
       {/* Games Grid (Ticket 2.1 - unten) */}
       <section id="alle-spiele" className="py-16 scroll-mt-8">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-2xl font-bold text-zinc-900 mb-8">Alle Spiele</h2>
+        <div className="max-w-6xl mx-auto px-4 space-y-12">
+          <ContinueModule />
           {games.length === 0 ? (
             <p className="text-zinc-600">Noch keine Spiele verfügbar.</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {games.map((game) => (
-                <GameCard key={game.id} game={game} />
-              ))}
-            </div>
+            <>
+              {classicGames.length > 0 && (
+                <div>
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-bold text-zinc-900">Klassiker</h2>
+                    <p className="mt-2 text-zinc-600">Sofort verständlich. Immer gut.</p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {classicGames.map((game) => (
+                      <GameCard key={game.id} game={game} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {quickFlowGames.length > 0 && (
+                <div>
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-bold text-zinc-900">Kurz &amp; Flow</h2>
+                    <p className="mt-2 text-zinc-600">Eine Runde geht immer.</p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {quickFlowGames.map((game) => (
+                      <GameCard key={game.id} game={game} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>

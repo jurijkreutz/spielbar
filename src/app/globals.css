@@ -72,6 +72,21 @@ button {
   -webkit-touch-callout: none;
 }
 
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-fade {
+  animation: pageFadeIn 260ms ease-out;
+}
+
 /* ===== Color Pulse Animations ===== */
 
 /* Reveal Pulse - subtile Welle beim Aufdecken */
@@ -309,4 +324,3 @@ button {
   letter-spacing: 0.05em;
   font-weight: 700;
 }
-

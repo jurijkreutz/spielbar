@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { MinesweeperGame, SudokuGame, StackTower, Snake, LemonadeStand } from '@/games';
 import { GAME_DESCRIPTIONS } from '@/lib/gameDescriptions';
+import { TrackedLink } from '@/components/platform/TrackedLink';
 
 // Mapping von gameComponent zu tatsächlichen Komponenten
 const gameComponents: Record<string, React.ComponentType> = {
@@ -55,17 +56,18 @@ export default async function GamePage({ params }: GamePageProps) {
   const longDesc = descriptions?.long || game.longDescription;
 
   return (
-    <main className="min-h-screen bg-zinc-100">
+    <main className="min-h-screen bg-zinc-100 page-fade">
       {/* Header */}
       <header className="bg-white border-b border-zinc-200">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link
+            <TrackedLink
               href="/"
+              tracking={{ type: 'game_exit_to_overview', from: game.slug }}
               className="text-zinc-600 hover:text-zinc-900 font-medium flex items-center gap-2"
             >
               ← Zur Übersicht
-            </Link>
+            </TrackedLink>
             <Link href="/" className="flex items-center">
               <img
                 src="/spielbar.png"
@@ -189,12 +191,13 @@ export default async function GamePage({ params }: GamePageProps) {
       <footer className="py-8 bg-zinc-900 text-zinc-400">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <Link
+            <TrackedLink
               href="/"
+              tracking={{ type: 'game_exit_to_overview', from: game.slug }}
               className="text-zinc-400 hover:text-white transition-colors"
             >
               ← Alle Spiele
-            </Link>
+            </TrackedLink>
             <p className="text-sm">© {new Date().getFullYear()} Spielbar. Alle Rechte vorbehalten.</p>
           </div>
         </div>

@@ -8,6 +8,8 @@ import { Board } from './Board';
 import { NumberPad } from './NumberPad';
 import { DarkModeToggle } from '../hooks/useDarkMode';
 import { analytics, setDailyCompleted } from '@/lib/analytics';
+import { Loader } from '@/components/platform/Loader';
+import { TrackedLink } from '@/components/platform/TrackedLink';
 
 const PLAYER_ID_KEY = 'spielbar-player-id';
 
@@ -212,7 +214,10 @@ export function DailyGame() {
     if (!isPlaying) {
       setIsPlaying(true);
       // Track game start (Ticket 7.1)
-      analytics.trackGameStart('sudoku', 'daily');
+      analytics.trackGameStart('sudoku', 'daily', {
+        name: 'Daily Sudoku',
+        href: '/games/sudoku/daily',
+      });
     }
   }, [isPlaying, alreadyCompleted]);
 
@@ -296,11 +301,7 @@ export function DailyGame() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-12">
-        <div className="text-zinc-500 dark:text-zinc-400">
-          Lädt das heutige Sudoku...
-        </div>
-      </div>
+      <Loader className="p-12" />
     );
   }
 
@@ -414,12 +415,13 @@ export function DailyGame() {
 
             {/* Next Actions */}
             <div className="flex flex-col gap-3">
-              <a
+              <TrackedLink
                 href="/"
-                className="px-6 py-2.5 text-sm font-medium text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-700 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors"
+                tracking={{ type: 'game_exit_to_overview', from: 'sudoku-daily' }}
+                className="px-6 py-2.5 text-sm font-medium text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-700 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors text-center"
               >
                 Alle Spiele
-              </a>
+              </TrackedLink>
               <a
                 href="/games/minesweeper/daily"
                 className="px-6 py-2.5 text-sm font-medium text-amber-700 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors"
@@ -433,4 +435,3 @@ export function DailyGame() {
     </div>
   );
 }
-

@@ -3,6 +3,8 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useStackTower } from '../hooks/useStackTower';
 import { GAME_CONFIG, SKY_COLORS, BLOCK_COLORS } from '../types/stacktower';
+import { analytics } from '@/lib/analytics';
+import { TrackedLink } from '@/components/platform/TrackedLink';
 
 // Living Sky Types
 interface Cloud {
@@ -180,6 +182,17 @@ export function StackTower() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const startRun = useCallback(() => {
+    if (gameState.status === 'gameover') {
+      analytics.trackGameRestart('stacktower', 'free');
+    }
+    analytics.trackGameStart('stacktower', 'free', {
+      name: 'Stack Tower',
+      href: '/games/stacktower',
+    });
+    startGame();
+  }, [gameState.status, startGame]);
+
   // Living Sky State
   const [clouds, setClouds] = useState<Cloud[]>(() => generateClouds());
   const [birds, setBirds] = useState<Bird[]>([]);
@@ -189,11 +202,11 @@ export function StackTower() {
 
   const handleInput = useCallback(() => {
     if (gameState.status === 'idle' || gameState.status === 'gameover') {
-      startGame();
+      startRun();
     } else if (gameState.status === 'playing') {
       dropBlock();
     }
-  }, [gameState.status, startGame, dropBlock]);
+  }, [gameState.status, startRun, dropBlock]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -202,13 +215,13 @@ export function StackTower() {
         handleInput();
       }
       if (e.code === 'KeyR' && gameState.status === 'gameover') {
-        startGame();
+        startRun();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleInput, gameState.status, startGame]);
+  }, [handleInput, gameState.status, startRun]);
 
   // Living Sky Animation Loop
   useEffect(() => {
@@ -508,7 +521,7 @@ export function StackTower() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    startGame();
+                    startRun();
                   }}
                   className="px-8 py-3 bg-white text-zinc-900 font-semibold rounded-lg hover:bg-zinc-100 transition-colors"
                 >
@@ -536,18 +549,19 @@ export function StackTower() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    startGame();
+                    startRun();
                   }}
                   className="px-8 py-3 bg-white text-zinc-900 font-semibold rounded-lg hover:bg-zinc-100 transition-colors"
                 >
                   Nochmal
                 </button>
-                <a
+                <TrackedLink
                   href="/"
-                  className="px-8 py-2.5 text-sm text-white/80 hover:text-white transition-colors"
+                  tracking={{ type: 'game_exit_to_overview', from: 'stacktower' }}
+                  className="px-8 py-2.5 text-sm text-white/80 hover:text-white transition-colors text-center"
                 >
                   Alle Spiele
-                </a>
+                </TrackedLink>
                 <a
                   href="/games/minesweeper/daily"
                   className="px-6 py-2 text-sm text-amber-300 hover:text-amber-200 transition-colors"
@@ -581,4 +595,3 @@ export function StackTower() {
     </div>
   );
 }
-
