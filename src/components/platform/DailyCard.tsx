@@ -2,16 +2,42 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { analytics } from '@/lib/analytics';
-import { getPlayerId } from '@/lib/playerId';
+import {
+  DAILY_PROGRESS_EVENT,
+  analytics,
+  getDailyHubStatus,
+  type DailyHubStatus,
+} from '@/lib/analytics';
+import { useStorageAvailability } from '@/lib/safeStorage';
 
 interface DailyCardProps {
   game: 'minesweeper' | 'sudoku';
 }
 
-function getTodayDateString(): string {
-  const now = new Date();
-  return now.toISOString().split('T')[0];
+type StatusUi = {
+  label: string;
+  badgeClass: string;
+};
+
+function getStatusUi(status: DailyHubStatus): StatusUi {
+  if (status.state === 'open') {
+    return {
+      label: '🟢 offen',
+      badgeClass: 'bg-emerald-100 text-emerald-700',
+    };
+  }
+
+  if (status.state === 'started') {
+    return {
+      label: '🟡 gestartet - Jetzt fortsetzen!',
+      badgeClass: 'bg-amber-100 text-amber-800',
+    };
+  }
+
+  return {
+    label: '🟠 für heute fertig',
+    badgeClass: 'bg-orange-100 text-orange-800',
+  };
 }
 
 const gameConfig = {
@@ -29,8 +55,6 @@ const gameConfig = {
     arrowColor: 'text-amber-500',
     hoverText: 'group-hover:text-amber-700',
     description: 'Garantiert lösbar ohne Raten',
-    openText: '1 Versuch pro Tag.',
-    completedText: 'Morgen kommt das nächste.',
   },
   sudoku: {
     title: 'Daily Sudoku',
@@ -46,50 +70,32 @@ const gameConfig = {
     arrowColor: 'text-blue-500',
     hoverText: 'group-hover:text-blue-700',
     description: 'Das tägliche Zahlenrätsel',
-    openText: 'Heute neues Rätsel.',
-    completedText: 'Morgen kommt das nächste.',
   },
 };
 
 export function DailyCard({ game }: DailyCardProps) {
-  const [status, setStatus] = useState<'loading' | 'open' | 'completed'>('loading');
+  const availability = useStorageAvailability();
+  const [status, setStatus] = useState<DailyHubStatus>({ game, state: 'open' });
   const linkRef = useRef<HTMLDivElement | null>(null);
   const impressionTracked = useRef(false);
 
   useEffect(() => {
-    async function checkStatus() {
-      try {
-        const playerId = getPlayerId();
-        if (!playerId) {
-          setStatus('open');
-          return;
-        }
-
-        const date = getTodayDateString();
-        const config = gameConfig[game];
-        const res = await fetch(`${config.apiEndpoint}?date=${date}&playerId=${playerId}`);
-
-        if (!res.ok) {
-          setStatus('open');
-          return;
-        }
-
-        const data = await res.json();
-
-        // Check if attempt exists and is completed
-        if (data.attempt?.completed) {
-          setStatus('completed');
-        } else {
-          setStatus('open');
-        }
-      } catch {
-        // On error, assume open
-        setStatus('open');
-      }
+    if (!availability.local) {
+      return;
     }
 
-    checkStatus();
-  }, [game]);
+    const updateStatus = () => {
+      setStatus(getDailyHubStatus(game));
+    };
+
+    updateStatus();
+    window.addEventListener('storage', updateStatus);
+    window.addEventListener(DAILY_PROGRESS_EVENT, updateStatus as EventListener);
+    return () => {
+      window.removeEventListener('storage', updateStatus);
+      window.removeEventListener(DAILY_PROGRESS_EVENT, updateStatus as EventListener);
+    };
+  }, [availability.local, game]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -115,32 +121,31 @@ export function DailyCard({ game }: DailyCardProps) {
   }, [game]);
 
   const config = gameConfig[game];
-  const isCompleted = status === 'completed';
-  const showStatus = status !== 'loading';
+  const showStatus = availability.local;
+  const statusUi = getStatusUi(status);
+  const isOpen = status.state === 'open';
+  const isStarted = status.state === 'started';
+  const ctaText = isOpen ? 'Daily spielen' : isStarted ? 'Jetzt fortsetzen' : 'Ansehen';
 
   return (
-    <div ref={linkRef}>
+    <div ref={linkRef} className="h-full">
       <Link
         href={config.href}
         onClick={() => analytics.trackDailyCardClick(game)}
-        className={`group block premium-lift bg-white rounded-2xl border ${config.borderColor} p-6 ${config.borderHover} transition-all`}
+        className={`group block h-full premium-lift bg-white rounded-2xl border ${config.borderColor} p-6 ${config.borderHover} transition-all`}
       >
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-4 h-full">
           <div className={`w-16 h-16 bg-gradient-to-br ${config.gradientFrom} ${config.gradientTo} rounded-xl flex items-center justify-center text-3xl flex-shrink-0`}>
             {config.emoji}
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 flex flex-col h-full">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <span className={`px-2 py-0.5 ${config.badgeBg} ${config.badgeText} text-xs font-medium rounded-full`}>
                 Heute
               </span>
               {showStatus && (
-                <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                  isCompleted
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'bg-zinc-100 text-zinc-600'
-                }`}>
-                  {isCompleted ? 'Erledigt ✅' : 'Heute offen'}
+                <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${statusUi.badgeClass}`}>
+                  {statusUi.label}
                 </span>
               )}
             </div>
@@ -150,15 +155,11 @@ export function DailyCard({ game }: DailyCardProps) {
             <p className="text-sm text-zinc-600 mt-1">
               {config.description}
             </p>
-            {showStatus && (
-              <p className="text-xs text-zinc-400 mt-2">
-                {isCompleted ? config.completedText : config.openText}
-              </p>
-            )}
+            <div className={`mt-auto pt-4 inline-flex items-center gap-1 text-sm font-semibold ${config.hoverText} transition-colors`}>
+              {ctaText}
+              <span className="group-hover:translate-x-1 transition-transform">→</span>
+            </div>
           </div>
-          <span className={`${config.arrowColor} group-hover:translate-x-1 transition-transform mt-2 flex-shrink-0`}>
-            →
-          </span>
         </div>
       </Link>
     </div>

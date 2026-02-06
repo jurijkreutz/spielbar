@@ -95,23 +95,28 @@ export default async function Home() {
       </section>
 
       {/* Daily Challenges Section (Ticket 2.1 - oben, vor Featured) */}
-      <section className="section-tint section-daily pt-12 pb-6 md:pt-14 md:pb-8">
+      <section className="section-tint section-daily pt-12 pb-6 md:pt-14 md:pb-14">
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] items-end gap-4 md:gap-6 mb-8 md:mb-10">
             <div className="text-left max-w-2xl">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-900/70">
-                Zwei tägliche Rätsel – für alle gleich.
+                Daily Hub
               </p>
               <h2 className="mt-2 text-2xl md:text-3xl font-bold text-zinc-900">
                 Heute
               </h2>
+              <p className="mt-2 text-sm text-zinc-600">
+                Spiele eines der heutigen Tages-Rätsel und verlängere deinen Streak!
+              </p>
             </div>
-            <WeeklyProgress className="w-full sm:w-auto md:justify-self-end" />
+            <WeeklyProgress className="w-full sm:w-auto md:justify-self-end md:mt-4" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
             <DailyCard game="minesweeper" />
             <DailyCard game="sudoku" />
+          </div>
+          <div className="mt-8 md:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 md:gap-4">
           </div>
         </div>
       </section>
