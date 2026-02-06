@@ -8,8 +8,11 @@ Eine Plattform für fokussierte, gut gemachte Browsergames – ohne Ablenkung, o
 # Dependencies installieren
 npm install
 
-# Datenbank initialisieren (nur beim ersten Mal)
-npx prisma migrate dev
+# Datenbank aus Migrations-Historie aufsetzen (Baseline + alle Folgemigrationen)
+npx prisma migrate deploy
+
+# Optional: Seed-Daten laden
+npm run db:seed
 
 # Entwicklungsserver starten
 npm run dev
@@ -396,15 +399,29 @@ In `src/app/games/[slug]/page.tsx` die Komponente importieren und im Mapping hin
 Das Projekt verwendet **Prisma** mit **SQLite**.
 
 ```bash
+# Frischer Clone / neues Environment:
+# 1) DB exakt aus Repo-Migrationen herstellen
+npx prisma migrate deploy
+
+# 2) Optional: Seed laden
+npm run db:seed
+
 # Prisma Studio (Datenbank-GUI)
 npm run db:studio
 
-# Migration erstellen
-npm run db:migrate
+# Neue Migration in der Entwicklung erstellen
+npx prisma migrate dev --name <kurze-beschreibung>
 
-# Datenbank seeden
-npm run db:seed
+# Prisma Client neu generieren (falls nötig)
+npx prisma generate
 ```
+
+### Migrations-Regeln (wichtig)
+
+- Migrationen in `prisma/migrations/` sind die Quelle der Wahrheit.
+- Für Setup von Mensch/Agent immer zuerst `npx prisma migrate deploy`.
+- Keine Schema-Änderungen nur mit `db push` einspielen, wenn sie versioniert sein sollen.
+- Bei einem komplett frischen lokalen Start kann `prisma/dev.db` gelöscht und danach `npx prisma migrate deploy` erneut ausgeführt werden.
 
 ### Datenbank-Modelle
 

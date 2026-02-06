@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { NewsCard } from '@/components/platform/NewsCard';
+import SiteFooter from '@/components/platform/SiteFooter';
 
 export const metadata = {
   title: 'News | Spielbar',
@@ -56,12 +57,7 @@ export default async function NewsPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 bg-zinc-900 text-zinc-400 mt-auto">
-        <div className="max-w-6xl mx-auto px-4 text-center text-sm">
-          <p>© {new Date().getFullYear()} Spielbar. Alle Rechte vorbehalten.</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }
-

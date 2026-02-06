@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { signOut } from '@/lib/auth';
 
-type AdminSection = 'dashboard' | 'games' | 'news' | 'analytics';
+type AdminSection = 'dashboard' | 'games' | 'news' | 'analytics' | 'legal';
 
 interface AdminHeaderProps {
   active: AdminSection;
@@ -12,6 +12,7 @@ const NAV_ITEMS: Array<{ key: AdminSection; href: string; label: string }> = [
   { key: 'games', href: '/admin/games', label: 'Spiele' },
   { key: 'news', href: '/admin/news', label: 'News' },
   { key: 'analytics', href: '/admin/analytics', label: 'Analytics' },
+  { key: 'legal', href: '/admin/legal', label: 'Recht & Kontakt' },
 ];
 
 export default function AdminHeader({ active }: AdminHeaderProps) {

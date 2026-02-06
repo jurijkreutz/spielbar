@@ -10,6 +10,7 @@ import { ContinueModule } from '@/components/platform/ContinueModule';
 import { TrackedLink } from '@/components/platform/TrackedLink';
 import { RandomBadge } from '@/components/RandomBadge';
 import { HeroParallax } from '@/components/platform/HeroParallax';
+import SiteFooter from '@/components/platform/SiteFooter';
 
 export const metadata = {
   title: 'Spielbar | Browsergames. Sofort spielbar.',
@@ -262,11 +263,7 @@ export default async function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 bg-zinc-900 text-zinc-400">
-        <div className="max-w-6xl mx-auto px-4 text-center text-sm">
-          <p>© {new Date().getFullYear()} Spielbar. Alle Rechte vorbehalten.</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

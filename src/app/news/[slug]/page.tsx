@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
+import SiteFooter from '@/components/platform/SiteFooter';
 
 interface NewsDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -122,12 +123,7 @@ export default async function NewsDetailPage({ params }: NewsDetailPageProps) {
       </article>
 
       {/* Footer */}
-      <footer className="py-8 bg-zinc-900 text-zinc-400 mt-auto">
-        <div className="max-w-6xl mx-auto px-4 text-center text-sm">
-          <p>© {new Date().getFullYear()} Spielbar. Alle Rechte vorbehalten.</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }
-

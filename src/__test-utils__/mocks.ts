@@ -35,6 +35,16 @@ export function createPrismaMock() {
     user: {
       findUnique: jest.fn(),
     },
+    legalImprint: {
+      findUnique: jest.fn(),
+      create: jest.fn(),
+      upsert: jest.fn(),
+    },
+    contactRequest: {
+      findMany: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+    },
     $transaction: jest.fn(),
   };
 }

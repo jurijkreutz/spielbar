@@ -93,6 +93,16 @@ export default async function AdminDashboard() {
               Live-Besucher und Spiel-Statistiken ansehen
             </p>
           </Link>
+          <Link
+            href="/admin/legal"
+            className="bg-white rounded-xl border border-zinc-200 p-6 hover:border-zinc-300 hover:shadow-sm transition-all"
+          >
+            <div className="text-2xl mb-2">⚖️</div>
+            <h4 className="font-semibold text-zinc-900">Recht & Kontakt</h4>
+            <p className="text-sm text-zinc-500 mt-1">
+              Impressum pflegen und Kontaktanfragen bearbeiten
+            </p>
+          </Link>
         </div>
       </main>
     </div>

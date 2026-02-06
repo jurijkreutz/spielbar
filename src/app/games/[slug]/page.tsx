@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { MinesweeperGame, SudokuGame, StackTower, Snake, LemonadeStand, BrickBreaker } from '@/games';
 import { GAME_DESCRIPTIONS } from '@/lib/gameDescriptions';
 import { TrackedLink } from '@/components/platform/TrackedLink';
+import SiteFooter from '@/components/platform/SiteFooter';
 
 // Mapping von gameComponent zu tatsächlichen Komponenten
 const gameComponents: Record<string, React.ComponentType> = {
@@ -189,20 +190,9 @@ export default async function GamePage({ params }: GamePageProps) {
       )}
 
       {/* Footer with back navigation (Ticket 8 - keine Sackgassen) */}
-      <footer className="py-8 bg-zinc-900 text-zinc-400">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <TrackedLink
-              href="/"
-              tracking={{ type: 'game_exit_to_overview', from: game.slug }}
-              className="text-zinc-400 hover:text-white transition-colors"
-            >
-              ← Alle Spiele
-            </TrackedLink>
-            <p className="text-sm">© {new Date().getFullYear()} Spielbar. Alle Rechte vorbehalten.</p>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter
+        backLink={{ label: '← Alle Spiele', href: '/', trackingFrom: game.slug }}
+      />
     </main>
   );
 }

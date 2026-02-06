@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { MinesweeperDailyGame } from '@/games';
 import { TrackedLink } from '@/components/platform/TrackedLink';
+import SiteFooter from '@/components/platform/SiteFooter';
 
 export const metadata = {
   title: 'Daily Minesweeper | Spielbar',
@@ -75,20 +76,9 @@ export default function DailyPage() {
       </section>
 
       {/* Footer with back navigation */}
-      <footer className="py-8 bg-zinc-900 text-zinc-400">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <TrackedLink
-              href="/"
-              tracking={{ type: 'game_exit_to_overview', from: 'minesweeper-daily' }}
-              className="text-zinc-400 hover:text-white transition-colors"
-            >
-              ← Alle Spiele
-            </TrackedLink>
-            <p className="text-sm">© {new Date().getFullYear()} Spielbar. Alle Rechte vorbehalten.</p>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter
+        backLink={{ label: '← Alle Spiele', href: '/', trackingFrom: 'minesweeper-daily' }}
+      />
     </main>
   );
 }

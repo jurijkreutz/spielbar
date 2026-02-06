@@ -137,3 +137,34 @@ model SiteHeartbeat {
 
   @@map("site_heartbeats")
 }
+
+// Impressum-Daten (ein Datensatz, im Admin gepflegt)
+model LegalImprint {
+  id            String   @id @default("default")
+  companyName   String   @map("company_name")
+  street        String
+  postalCode    String   @map("postal_code")
+  city          String
+  country       String
+  email         String
+  phone         String?
+  representedBy String   @map("represented_by")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("legal_imprint")
+}
+
+// Kontaktanfragen von Nutzern
+model ContactRequest {
+  id            String   @id @default(cuid())
+  name          String?
+  email         String?
+  message       String
+  sourcePath    String   @map("source_path")
+  sourceContext String?  @map("source_context")
+  status        String   @default("new") // new, read
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("contact_requests")
+}
