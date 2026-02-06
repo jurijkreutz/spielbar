@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { getOrCreateLegalImprint } from '@/lib/legalImprint';
 import SiteFooter from '@/components/platform/SiteFooter';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Impressum | Spielbar',
   description: 'Rechtliche Anbieterkennzeichnung von Spielbar.',
