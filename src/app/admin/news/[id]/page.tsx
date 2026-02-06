@@ -5,6 +5,9 @@ import { prisma } from '@/lib/prisma';
 import AdminHeader from '@/components/admin/AdminHeader';
 import { NewsForm } from '@/components/admin/NewsForm';
 
+export const dynamic = 'force-dynamic';
+
+
 interface EditNewsPageProps {
   params: Promise<{ id: string }>;
 }

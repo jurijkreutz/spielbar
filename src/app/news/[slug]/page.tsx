@@ -3,6 +3,9 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import SiteFooter from '@/components/platform/SiteFooter';
 
+export const dynamic = 'force-dynamic';
+
+
 interface NewsDetailPageProps {
   params: Promise<{ slug: string }>;
 }

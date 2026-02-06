@@ -5,6 +5,9 @@ import { prisma } from '@/lib/prisma';
 import AdminHeader from '@/components/admin/AdminHeader';
 import { GameForm } from '@/components/admin/GameForm';
 
+export const dynamic = 'force-dynamic';
+
+
 interface EditGamePageProps {
   params: Promise<{ id: string }>;
 }

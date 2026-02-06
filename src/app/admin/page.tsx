@@ -4,6 +4,9 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AdminHeader from '@/components/admin/AdminHeader';
 
+export const dynamic = 'force-dynamic';
+
+
 export default async function AdminDashboard() {
   const session = await auth();
 

@@ -5,6 +5,9 @@ import { getOrCreateLegalImprint } from '@/lib/legalImprint';
 import AdminHeader from '@/components/admin/AdminHeader';
 import LegalContactAdmin from '@/components/admin/LegalContactAdmin';
 
+export const dynamic = 'force-dynamic';
+
+
 export default async function AdminLegalPage() {
   const session = await auth();
 

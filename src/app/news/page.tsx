@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { NewsCard } from '@/components/platform/NewsCard';
 import SiteFooter from '@/components/platform/SiteFooter';
 
+export const dynamic = 'force-dynamic';
+
+
 export const metadata = {
   title: 'News | Spielbar',
   description: 'Neuigkeiten, Updates und Release Notes von Spielbar',

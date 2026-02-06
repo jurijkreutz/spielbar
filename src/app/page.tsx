@@ -12,6 +12,9 @@ import { RandomBadge } from '@/components/RandomBadge';
 import { HeroParallax } from '@/components/platform/HeroParallax';
 import SiteFooter from '@/components/platform/SiteFooter';
 
+export const dynamic = 'force-dynamic';
+
+
 export const metadata = {
   title: 'Spielbar | Browsergames. Sofort spielbar.',
   description: 'Keine Downloads, kein Login, kein Setup. Klick – und du bist drin. Klassiker, Daily-Rätsel und kurze Games für zwischendurch.',

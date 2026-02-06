@@ -7,6 +7,9 @@ import { TrackedLink } from '@/components/platform/TrackedLink';
 import SiteFooter from '@/components/platform/SiteFooter';
 import { StorageNotice } from '@/components/platform/StorageNotice';
 
+export const dynamic = 'force-dynamic';
+
+
 // Mapping von gameComponent zu tatsächlichen Komponenten
 const gameComponents: Record<string, React.ComponentType> = {
   Minesweeper: MinesweeperGame,

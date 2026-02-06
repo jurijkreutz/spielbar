@@ -6,6 +6,9 @@ import LiveVisitorCount from '@/components/admin/LiveVisitorCount';
 import LiveGames from '@/components/admin/LiveGames';
 import AnalyticsTrendChart from '@/components/admin/AnalyticsTrendChart';
 
+export const dynamic = 'force-dynamic';
+
+
 type PlayerVisit = {
   date: string;
   playerId: string;

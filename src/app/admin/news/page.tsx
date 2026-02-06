@@ -5,6 +5,9 @@ import { prisma } from '@/lib/prisma';
 import AdminHeader from '@/components/admin/AdminHeader';
 import { NewsListItem } from '@/components/admin/NewsListItem';
 
+export const dynamic = 'force-dynamic';
+
+
 export default async function AdminNewsPage() {
   const session = await auth();
 

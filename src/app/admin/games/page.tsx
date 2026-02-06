@@ -5,6 +5,9 @@ import { prisma } from '@/lib/prisma';
 import AdminHeader from '@/components/admin/AdminHeader';
 import { GameListItem } from '@/components/admin/GameListItem';
 
+export const dynamic = 'force-dynamic';
+
+
 export default async function AdminGamesPage() {
   const session = await auth();
 
