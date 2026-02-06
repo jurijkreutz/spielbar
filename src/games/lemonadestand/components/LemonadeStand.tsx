@@ -328,15 +328,22 @@ export function LemonadeStand() {
             {/* Lemonade Stand - Changes based on upgrades */}
             {(() => {
               const standLevel = getUpgradeLevel('bigger-stand');
+              const standBottom = (() => {
+                if (!isMobile) return 24;
+                if (standLevel >= 5) return -18;
+                if (standLevel >= 4) return -10;
+                if (standLevel >= 3) return 0;
+                if (standLevel >= 2) return 10;
+                return 18;
+              })();
 
-              // Alle Stände werden auf derselben Grundlinie positioniert (bottom: 24px vom Game-Bereich).
-              // Die Höhe bestimmt, wie weit sie nach oben ragen.
-              // Größere Stände = größere Höhen, aber gleiche Bodenposition.
+              // Alle Stände bleiben auf derselben Grundlinie.
+              // Auf Mobile wird die Basis je nach Größe leicht abgesenkt, damit große Sprites nicht schweben.
               const commonStyle: React.CSSProperties = {
                 position: 'absolute',
                 left: '50%',
                 transform: 'translateX(-50%)',
-                bottom: '24px',
+                bottom: `${standBottom}px`,
                 width: 'auto',
                 objectFit: 'contain',
                 imageRendering: 'auto',

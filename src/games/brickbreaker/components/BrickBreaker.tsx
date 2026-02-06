@@ -231,6 +231,7 @@ function normalizeBall(ball: Ball, preferredDir: number) {
 export function BrickBreaker() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [isNarrowViewport, setIsNarrowViewport] = useState(false);
 
   const [ui, setUi] = useState<UiState>({
     status: 'idle',
@@ -934,16 +935,24 @@ export function BrickBreaker() {
       setIsTouchDevice(
         mediaQuery.matches || navigator.maxTouchPoints > 0 || window.innerWidth < 768
       );
+      setIsNarrowViewport(window.innerWidth <= 768);
     };
     updateTouch();
+    window.addEventListener('resize', updateTouch);
 
     if (typeof mediaQuery.addEventListener === 'function') {
       mediaQuery.addEventListener('change', updateTouch);
-      return () => mediaQuery.removeEventListener('change', updateTouch);
+      return () => {
+        window.removeEventListener('resize', updateTouch);
+        mediaQuery.removeEventListener('change', updateTouch);
+      };
     }
 
     mediaQuery.addListener(updateTouch);
-    return () => mediaQuery.removeListener(updateTouch);
+    return () => {
+      window.removeEventListener('resize', updateTouch);
+      mediaQuery.removeListener(updateTouch);
+    };
   }, []);
 
   useEffect(() => {
@@ -979,10 +988,11 @@ export function BrickBreaker() {
   const activePowerupInfo = ui.activePowerup ? POWERUP_INFO[ui.activePowerup.type] : null;
   const maxLevel = LEVEL_PATTERNS.length;
   const isEndOverlay = ui.status === 'gameover' || ui.status === 'win';
+  const compactEndScreen = isEndOverlay && (isTouchDevice || isNarrowViewport);
 
   return (
     <div className="flex flex-col items-center gap-6 p-2 sm:p-4 w-full">
-      <div className={`${isTouchDevice && isEndOverlay ? 'hidden' : 'flex'} flex-wrap items-center justify-center gap-6 text-center`}>
+      <div className={`${compactEndScreen ? 'hidden' : 'flex'} flex-wrap items-center justify-center gap-6 text-center`}>
         <div>
           <div className="text-xs text-zinc-500 uppercase tracking-wide">Score</div>
           <div className="text-3xl font-bold text-zinc-900">{ui.score}</div>
@@ -1059,25 +1069,33 @@ export function BrickBreaker() {
 
         {ui.status === 'gameover' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900/65 rounded-xl">
-            <div className="text-center text-white px-4 sm:px-6 w-full max-w-[360px]">
-              <h2 className="text-xl sm:text-2xl font-bold mb-2">Runde vorbei</h2>
-              <div className="text-4xl sm:text-5xl font-bold mb-1">{ui.score}</div>
-              <p className="text-white/70 text-sm sm:text-base mb-3 sm:mb-4">Score</p>
+            <div
+              className={`text-center text-white w-full ${
+                isNarrowViewport
+                  ? 'max-w-[300px] rounded-2xl bg-zinc-900/60 px-4 py-5'
+                  : 'max-w-[360px] px-4 sm:px-6'
+              }`}
+            >
+              <h2 className="text-lg lg:text-2xl font-bold mb-2">Runde vorbei</h2>
+              <div className="text-3xl lg:text-5xl font-bold mb-1">{ui.score}</div>
+              <p className="text-white/70 text-sm lg:text-base mb-3 lg:mb-4">Score</p>
               {ui.score === ui.best && ui.score > 0 ? (
-                <p className="text-amber-300 font-semibold text-sm sm:text-base mb-4">Neuer Bestscore</p>
+                <p className="text-amber-300 font-semibold text-sm lg:text-base mb-4">Neuer Bestscore</p>
               ) : (
-                <p className="text-white/50 text-sm sm:text-base mb-4">Bestscore: {ui.best}</p>
+                <p className="text-white/50 text-sm lg:text-base mb-4">Bestscore: {ui.best}</p>
               )}
               <button
                 onClick={(event) => {
                   event.stopPropagation();
                   handlePrimaryAction();
                 }}
-                className="min-h-[44px] w-full max-w-[240px] px-8 py-2.5 sm:py-3 bg-white text-zinc-900 font-semibold text-lg rounded-lg hover:bg-zinc-100 transition-colors"
+                className="min-h-[44px] w-full max-w-[240px] px-6 py-2.5 lg:py-3 bg-white text-zinc-900 font-semibold text-base lg:text-lg rounded-lg hover:bg-zinc-100 transition-colors"
               >
                 Nochmal
               </button>
-              <div className="mt-3 text-xs text-white/60">{isTouchDevice ? 'Tippen zum Neustart' : 'Space oder Klick'}</div>
+              <div className="mt-3 text-xs text-white/60">
+                {isTouchDevice || isNarrowViewport ? 'Tippen zum Neustart' : 'Space oder Klick'}
+              </div>
               <div
                 onClick={(event) => event.stopPropagation()}
                 className="mt-3 sm:mt-4"
@@ -1096,22 +1114,30 @@ export function BrickBreaker() {
 
         {ui.status === 'win' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/85 backdrop-blur-sm rounded-xl">
-            <div className="text-center px-4 sm:px-6 w-full max-w-[360px]">
-              <h2 className="text-xl sm:text-2xl font-bold text-zinc-900">Alles geschafft</h2>
-              <p className="mt-2 text-zinc-600 text-sm sm:text-base">Score: {ui.score}</p>
+            <div
+              className={`text-center w-full ${
+                isNarrowViewport
+                  ? 'max-w-[300px] rounded-2xl bg-white/90 px-4 py-5'
+                  : 'max-w-[360px] px-4 sm:px-6'
+              }`}
+            >
+              <h2 className="text-lg lg:text-2xl font-bold text-zinc-900">Alles geschafft</h2>
+              <p className="mt-2 text-zinc-600 text-sm lg:text-base">Score: {ui.score}</p>
               {ui.score === ui.best && ui.score > 0 && (
-                <p className="mt-2 text-emerald-700 font-semibold text-sm sm:text-base">Neuer Bestscore</p>
+                <p className="mt-2 text-emerald-700 font-semibold text-sm lg:text-base">Neuer Bestscore</p>
               )}
               <button
                 onClick={(event) => {
                   event.stopPropagation();
                   handlePrimaryAction();
                 }}
-                className="mt-4 min-h-[44px] w-full max-w-[240px] px-8 py-2.5 sm:py-3 bg-zinc-900 text-white font-semibold text-lg rounded-lg hover:bg-zinc-800 transition-colors"
+                className="mt-4 min-h-[44px] w-full max-w-[240px] px-6 py-2.5 lg:py-3 bg-zinc-900 text-white font-semibold text-base lg:text-lg rounded-lg hover:bg-zinc-800 transition-colors"
               >
                 Nochmal
               </button>
-              <div className="mt-3 text-xs text-zinc-500">{isTouchDevice ? 'Tippen zum Neustart' : 'Space oder Klick'}</div>
+              <div className="mt-3 text-xs text-zinc-500">
+                {isTouchDevice || isNarrowViewport ? 'Tippen zum Neustart' : 'Space oder Klick'}
+              </div>
             </div>
           </div>
         )}
@@ -1136,7 +1162,7 @@ export function BrickBreaker() {
         </div>
       )}
 
-      <div className={`text-center text-xs text-zinc-400 ${isTouchDevice && isEndOverlay ? 'hidden' : ''}`}>
+      <div className={`text-center text-xs text-zinc-400 ${compactEndScreen ? 'hidden' : ''}`}>
         <p>Maus/Trackpad oder Pfeiltasten · Space/Klick = Start/Restart</p>
       </div>
     </div>
