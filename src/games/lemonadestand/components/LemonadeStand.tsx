@@ -382,7 +382,7 @@ export function LemonadeStand() {
                     className="drop-shadow-lg"
                     style={{
                       ...commonStyle,
-                      height: '340px',
+                      height: '310px',
                     }}
                   />
                 );
