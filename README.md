@@ -139,9 +139,10 @@ Das tägliche Minesweeper-Rätsel – wie Wordle, aber für Logik-Fans.
 | Sa, So | Schwer (16×16, 45 Minen) |
 
 ### Ergebnis-Status
-- **✨ Clean Solve** – Ohne Hinweise gelöst
-- **Solved with Hints** – Mit Proof-Hilfe gelöst
-- Zeit & Züge werden angezeigt
+- **🟢 offen** – Daily noch nicht begonnen
+- **🟡 gestartet - Jetzt fortsetzen!** – begonnen, aber noch nicht abgeschlossen
+- **🟠 für heute fertig** – Daily für heute abgeschlossen
+- Auf den Hub-Karten werden keine Zeit-/Zug-Metriken angezeigt.
 
 ### Technische Details
 - Seeded Random Generator für deterministische Boards
@@ -164,6 +165,64 @@ Das tägliche Sudoku – ein Puzzle pro Tag für alle.
 ### Technische Details
 - **Daily-Board Eintrag** in der Datenbank (Prisma) für Lives/Archiv
 - Attempts/Status optional (je nach Implementierung) analog zu Minesweeper-Daily
+
+---
+
+## 🔁 Daily Hub & Weekly Progress (Retention Layer)
+
+Der Daily Hub sitzt auf der Startseite oberhalb der Spielelisten und zeigt innerhalb weniger Sekunden:
+
+- welche Dailies noch offen sind
+- welche bereits gestartet wurden
+- welche für heute fertig sind
+- wie der Wochenfortschritt aussieht
+
+### Daily-Status-Logik
+
+Es gibt exakt drei Status im Hub:
+
+- **🟢 offen**
+- **🟡 gestartet - Jetzt fortsetzen!**
+- **🟠 für heute fertig**
+
+Status-Übergänge:
+
+- **Minesweeper Daily**
+  - `offen` -> `gestartet`: erster relevanter Spielzug (Reveal oder Flag)
+  - `gestartet` -> `für heute fertig`: Versuch beendet (Gewinn **oder** Niederlage)
+- **Sudoku Daily**
+  - `offen` -> `gestartet`: erste gesetzte Zahl (kein bloßes Selektieren)
+  - `gestartet` -> `für heute fertig`: Puzzle vollständig gelöst
+
+### Weekly Progress (Soft Goal)
+
+- Ziel: **3 aktive Tage pro Woche**
+- Anzeige: `X / 3 Tage gespielt` plus horizontale Progress-Bar
+- Bei Zielerreichung: `Wochenziel erreicht ✓`
+- Badge: `Week Streak: N Wochen`
+  - zählt aufeinanderfolgende Wochen, in denen das 3-Tage-Ziel erreicht wurde
+
+### Persistenz & Fail-Safe
+
+Der Hub arbeitet ohne Login vollständig lokal:
+
+- `spielbar-daily-status`: Status pro Tag und Spiel (`started`, `completed`, Zeit/Züge, etc.)
+- `spielbar-daily-played`: Tagesaktivität für Weekly Progress
+- `spielbar-last-played`: zuletzt gespieltes Spiel für Continue/CTA
+- `spielbar-player-id`: lokale Spieler-ID für API-Attempts
+
+Wenn `localStorage` nicht verfügbar ist:
+
+- wird die Progress-/Status-UI defensiv ausgeblendet
+- Spiele bleiben weiterhin normal spielbar
+
+### Live-Updates im UI
+
+Nach Statusänderungen wird ein Custom Event dispatcht:
+
+- `spielbar_daily_progress_updated`
+
+Daily Cards, Weekly Progress und Primary CTA hören auf dieses Event (plus `storage`) und aktualisieren sich ohne Seiten-Reload.
 
 ---
 

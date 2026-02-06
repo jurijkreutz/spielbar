@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Board } from './Board';
 import { findProof, type ProofResult } from '../lib/proofSolver';
 import { createBoardFromPositions, getTodayDateString } from '../lib/dailyBoard';
-import { analytics, setDailyCompleted } from '@/lib/analytics';
+import { analytics, setDailyCompleted, setDailyStarted } from '@/lib/analytics';
 import { Loader } from '@/components/platform/Loader';
 import { InfoTooltip } from '@/components/platform/InfoTooltip';
 import { TrackedLink } from '@/components/platform/TrackedLink';
@@ -108,6 +108,13 @@ export function DailyGame() {
           if (data.attempt.time) setTime(data.attempt.time);
           if (data.attempt.moves) setMoves(data.attempt.moves);
           if (data.attempt.usedHints) setUsedHints(true);
+
+          // Sync local Daily Hub status from persisted server attempt.
+          setDailyCompleted('minesweeper', {
+            time: data.attempt.time ?? undefined,
+            moves: data.attempt.moves ?? undefined,
+            usedHints: data.attempt.usedHints,
+          });
         }
 
         // Create board
@@ -183,10 +190,8 @@ export function DailyGame() {
 
     // Track analytics (Ticket 7.1)
     analytics.trackGameEnd('minesweeper', 'daily', won ? 'win' : 'lose', time);
-    if (won) {
-      analytics.trackDailyComplete('minesweeper', time, moves, usedHints);
-      setDailyCompleted('minesweeper', { time, usedHints });
-    }
+    analytics.trackDailyComplete('minesweeper', time, moves, usedHints);
+    setDailyCompleted('minesweeper', { time, moves, usedHints });
 
     try {
       await fetch('/api/daily', {
@@ -257,6 +262,7 @@ export function DailyGame() {
     // Start game if idle
     if (gameState === 'idle') {
       setGameState('playing');
+      setDailyStarted('minesweeper');
       // Track game start (Ticket 7.1)
       analytics.trackGameStart('minesweeper', 'daily', {
         name: 'Daily Minesweeper',
@@ -298,6 +304,7 @@ export function DailyGame() {
 
     if (gameState === 'idle') {
       setGameState('playing');
+      setDailyStarted('minesweeper');
     }
 
     const newBoard = board.map(r => r.map(c => ({ ...c })));

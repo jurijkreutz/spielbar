@@ -7,7 +7,7 @@
  * - setLastPlayed / getLastPlayed: localStorage Round-Trip, Slug-Migration
  * - setDailyCompleted / isDailyCompleted / getTodaysDailyInfo: Daily Status Tracking
  * - markDailyPlayed / getDailyPlayed: Daily Play Tracking
- * - getWeeklyDailyProgress: 7-Tage Streak-Berechnung
+ * - getWeeklyDailyProgress: 3-Tage Weekly Goal + Week Streak
  * - Event Dispatch: spielbar_analytics CustomEvent
  */
 
@@ -15,11 +15,14 @@ import {
   setLastPlayed,
   getLastPlayed,
   setDailyCompleted,
+  setDailyStarted,
   isDailyCompleted,
   getTodaysDailyInfo,
   markDailyPlayed,
   getWeeklyDailyProgress,
   getDailyStatus,
+  getDailyHubStatus,
+  getDailyPrimaryTarget,
   analytics,
   type LastPlayedEntry,
 } from '../analytics';
@@ -105,11 +108,12 @@ describe('setDailyCompleted / isDailyCompleted', () => {
   });
 
   it('speichert zusätzliche Daten (time, usedHints)', () => {
-    setDailyCompleted('minesweeper', { time: 90, usedHints: true });
+    setDailyCompleted('minesweeper', { time: 90, moves: 42, usedHints: true });
     const info = getTodaysDailyInfo('minesweeper');
     expect(info).not.toBeNull();
     expect(info!.completed).toBe(true);
     expect(info!.time).toBe(90);
+    expect(info!.moves).toBe(42);
     expect(info!.usedHints).toBe(true);
   });
 
@@ -130,7 +134,7 @@ describe('getTodaysDailyInfo', () => {
   it('gibt korrekten Eintrag zurück', () => {
     setDailyCompleted('sudoku', { time: 250 });
     const info = getTodaysDailyInfo('sudoku');
-    expect(info).toEqual({ completed: true, time: 250 });
+    expect(info).toEqual({ started: true, completed: true, time: 250 });
   });
 });
 
@@ -140,6 +144,7 @@ describe('markDailyPlayed / getWeeklyDailyProgress', () => {
     const progress = getWeeklyDailyProgress();
     expect(progress.count).toBeGreaterThanOrEqual(1);
     expect(progress.total).toBe(7);
+    expect(progress.goal).toBe(3);
   });
 
   it('zählt verschiedene Tage korrekt', () => {
@@ -161,6 +166,48 @@ describe('markDailyPlayed / getWeeklyDailyProgress', () => {
     const progress = getWeeklyDailyProgress();
     expect(progress.count).toBe(3);
     expect(progress.total).toBe(7);
+    expect(progress.achieved).toBe(true);
+  });
+});
+
+describe('getDailyHubStatus', () => {
+  it('liefert "open" wenn kein Abschluss fur heute vorliegt', () => {
+    expect(getDailyHubStatus('minesweeper').state).toBe('open');
+  });
+
+  it('liefert "started" wenn Daily begonnen aber nicht abgeschlossen wurde', () => {
+    setDailyStarted('sudoku');
+    expect(getDailyHubStatus('sudoku').state).toBe('started');
+  });
+
+  it('liefert "completed" fur Minesweeper auch mit Hinweisen', () => {
+    setDailyCompleted('minesweeper', { time: 88, usedHints: true });
+    expect(getDailyHubStatus('minesweeper').state).toBe('completed');
+  });
+});
+
+describe('getDailyPrimaryTarget', () => {
+  it('liefert zuerst das erste offene Daily', () => {
+    setDailyCompleted('minesweeper', { time: 100 });
+    const target = getDailyPrimaryTarget();
+    expect(target.game).toBe('sudoku');
+    expect(target.href).toBe('/games/sudoku/daily');
+  });
+
+  it('nutzt zuletzt gespieltes Daily wenn alle offen sind', () => {
+    setDailyCompleted('minesweeper', { time: 100 });
+    setDailyCompleted('sudoku', { time: 120 });
+    setLastPlayed({
+      slug: 'sudoku',
+      name: 'Daily Sudoku',
+      href: '/games/sudoku/daily',
+      mode: 'daily',
+      playedAt: Date.now(),
+    });
+
+    const target = getDailyPrimaryTarget();
+    expect(target.game).toBe('sudoku');
+    expect(target.href).toBe('/games/sudoku/daily');
   });
 });
 

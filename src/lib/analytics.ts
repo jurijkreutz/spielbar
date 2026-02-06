@@ -48,6 +48,29 @@ export interface LastPlayedEntry {
   playedAt: number;
 }
 
+export type DailyGameSlug = 'minesweeper' | 'sudoku';
+export type DailyHubState = 'open' | 'started' | 'completed';
+
+type DailyStatusEntry = {
+  started?: boolean;
+  completed: boolean;
+  time?: number;
+  moves?: number;
+  usedHints?: boolean;
+};
+
+export interface DailyHubStatus {
+  game: DailyGameSlug;
+  state: DailyHubState;
+  time?: number;
+  moves?: number;
+  usedHints?: boolean;
+}
+
+export const DAILY_PROGRESS_EVENT = 'spielbar_daily_progress_updated';
+const WEEKLY_GOAL_DAYS = 3;
+const DAILY_GAMES_IN_ORDER: DailyGameSlug[] = ['minesweeper', 'sudoku'];
+
 // Internal event dispatcher - can be connected to analytics later
 function dispatchEvent(name: EventName, data?: Record<string, unknown>) {
   // Log to console in development
@@ -212,9 +235,14 @@ const DAILY_STATUS_KEY = 'spielbar-daily-status';
 
 interface DailyStatus {
   [dateKey: string]: {
-    minesweeper?: { completed: boolean; time?: number; usedHints?: boolean };
-    sudoku?: { completed: boolean; time?: number };
+    minesweeper?: DailyStatusEntry;
+    sudoku?: DailyStatusEntry;
   };
+}
+
+function emitDailyProgressEvent() {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent(DAILY_PROGRESS_EVENT, { detail: { updatedAt: Date.now() } }));
 }
 
 function getTodayKey(): string {
@@ -274,8 +302,8 @@ export function getDailyStatus(): DailyStatus {
 }
 
 export function setDailyCompleted(
-  game: 'minesweeper' | 'sudoku',
-  data: { time?: number; usedHints?: boolean }
+  game: DailyGameSlug,
+  data: { time?: number; moves?: number; usedHints?: boolean }
 ) {
   try {
     const status = getDailyStatus();
@@ -283,7 +311,8 @@ export function setDailyCompleted(
     if (!status[today]) {
       status[today] = {};
     }
-    status[today][game] = { completed: true, ...data };
+    const existing = status[today][game];
+    status[today][game] = { ...existing, started: true, completed: true, ...data };
     writeStorage('local', DAILY_STATUS_KEY, JSON.stringify(status));
     markDailyPlayed(today);
   } catch {
@@ -291,16 +320,76 @@ export function setDailyCompleted(
   }
 }
 
-export function isDailyCompleted(game: 'minesweeper' | 'sudoku'): boolean {
+export function setDailyStarted(game: DailyGameSlug) {
+  try {
+    const status = getDailyStatus();
+    const today = getTodayKey();
+    if (!status[today]) {
+      status[today] = {};
+    }
+    const existing = status[today][game];
+    status[today][game] = { ...existing, started: true, completed: existing?.completed ?? false };
+    writeStorage('local', DAILY_STATUS_KEY, JSON.stringify(status));
+    markDailyPlayed(today);
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+export function isDailyCompleted(game: DailyGameSlug): boolean {
   const status = getDailyStatus();
   const today = getTodayKey();
   return status[today]?.[game]?.completed ?? false;
 }
 
-export function getTodaysDailyInfo(game: 'minesweeper' | 'sudoku') {
+export function getTodaysDailyInfo(game: DailyGameSlug): DailyStatusEntry | null {
   const status = getDailyStatus();
   const today = getTodayKey();
   return status[today]?.[game] ?? null;
+}
+
+export function getDailyHubStatus(game: DailyGameSlug): DailyHubStatus {
+  const info = getTodaysDailyInfo(game);
+  if (!info?.completed) {
+    if (info?.started) {
+      return { game, state: 'started' };
+    }
+    return { game, state: 'open' };
+  }
+
+  return {
+    game,
+    state: 'completed',
+    time: info.time,
+    moves: info.moves,
+    usedHints: info.usedHints,
+  };
+}
+
+function getDailyHref(game: DailyGameSlug): string {
+  return game === 'minesweeper' ? '/games/minesweeper/daily' : '/games/sudoku/daily';
+}
+
+export function getDailyPrimaryTarget(): { game: DailyGameSlug; href: string } {
+  for (const game of DAILY_GAMES_IN_ORDER) {
+    const status = getDailyHubStatus(game);
+    if (status.state === 'open') {
+      return { game, href: getDailyHref(game) };
+    }
+  }
+
+  const lastPlayed = getLastPlayed();
+  if (
+    lastPlayed?.mode === 'daily' &&
+    (lastPlayed.slug === 'minesweeper' || lastPlayed.slug === 'sudoku')
+  ) {
+    return {
+      game: lastPlayed.slug,
+      href: lastPlayed.href || getDailyHref(lastPlayed.slug),
+    };
+  }
+
+  return { game: 'minesweeper', href: getDailyHref('minesweeper') };
 }
 
 type DailyPlayed = Record<string, boolean>;
@@ -319,6 +408,7 @@ export function markDailyPlayed(dateKey: string = getTodayKey()) {
     const played = getDailyPlayed();
     played[dateKey] = true;
     writeStorage('local', DAILY_PLAYED_KEY, JSON.stringify(played));
+    emitDailyProgressEvent();
   } catch {
     // Ignore storage errors
   }
@@ -328,6 +418,7 @@ export function getWeeklyDailyProgress() {
   const played = getDailyPlayed();
   const status = getDailyStatus();
   const start = getStartOfWeekUTC(new Date());
+  const activeDayKeysByWeek = new Map<string, Set<string>>();
   let count = 0;
 
   for (let i = 0; i < 7; i += 1) {
@@ -342,5 +433,50 @@ export function getWeeklyDailyProgress() {
     }
   }
 
-  return { count, total: 7 };
+  for (const key of Object.keys(played)) {
+    if (!played[key]) continue;
+    const date = new Date(`${key}T00:00:00.000Z`);
+    if (Number.isNaN(date.getTime())) continue;
+    const weekKey = getDateKeyUTC(getStartOfWeekUTC(date));
+    if (!activeDayKeysByWeek.has(weekKey)) {
+      activeDayKeysByWeek.set(weekKey, new Set());
+    }
+    activeDayKeysByWeek.get(weekKey)!.add(key);
+  }
+
+  for (const [key, games] of Object.entries(status)) {
+    const completed = Boolean(games.minesweeper?.completed || games.sudoku?.completed);
+    if (!completed) continue;
+    const date = new Date(`${key}T00:00:00.000Z`);
+    if (Number.isNaN(date.getTime())) continue;
+    const weekKey = getDateKeyUTC(getStartOfWeekUTC(date));
+    if (!activeDayKeysByWeek.has(weekKey)) {
+      activeDayKeysByWeek.set(weekKey, new Set());
+    }
+    activeDayKeysByWeek.get(weekKey)!.add(key);
+  }
+
+  const goal = WEEKLY_GOAL_DAYS;
+  const weekAchieved = new Set<string>();
+
+  for (const [weekKey, daySet] of activeDayKeysByWeek.entries()) {
+    if (daySet.size >= goal) {
+      weekAchieved.add(weekKey);
+    }
+  }
+
+  const currentWeekKey = getDateKeyUTC(start);
+  const achieved = count >= goal;
+  const streakProbe = new Date(start);
+  if (!weekAchieved.has(currentWeekKey)) {
+    streakProbe.setUTCDate(streakProbe.getUTCDate() - 7);
+  }
+
+  let weekStreak = 0;
+  while (weekAchieved.has(getDateKeyUTC(streakProbe))) {
+    weekStreak += 1;
+    streakProbe.setUTCDate(streakProbe.getUTCDate() - 7);
+  }
+
+  return { count, total: 7, goal, achieved, weekStreak };
 }

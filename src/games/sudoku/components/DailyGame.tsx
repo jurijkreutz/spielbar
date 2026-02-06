@@ -7,7 +7,7 @@ import { createBoardFromData, getTodayDateString } from '../lib/sudokuGenerator'
 import { Board } from './Board';
 import { NumberPad } from './NumberPad';
 import { DarkModeToggle } from '../hooks/useDarkMode';
-import { analytics, setDailyCompleted } from '@/lib/analytics';
+import { analytics, setDailyCompleted, setDailyStarted } from '@/lib/analytics';
 import { Loader } from '@/components/platform/Loader';
 import { TrackedLink } from '@/components/platform/TrackedLink';
 import { getPlayerId } from '@/lib/playerId';
@@ -66,6 +66,12 @@ export function DailyGame() {
           setIsComplete(true);
           if (data.attempt.time) setTime(data.attempt.time);
           if (data.attempt.moves) setMoveCount(data.attempt.moves);
+
+          // Sync local Daily Hub status from persisted server attempt.
+          setDailyCompleted('sudoku', {
+            time: data.attempt.time ?? undefined,
+            moves: data.attempt.moves ?? undefined,
+          });
         }
 
         // Create board
@@ -176,7 +182,7 @@ export function DailyGame() {
     // Track analytics (Ticket 7.1)
     analytics.trackGameEnd('sudoku', 'daily', 'win', time);
     analytics.trackDailyComplete('sudoku', time, moveCount);
-    setDailyCompleted('sudoku', { time });
+    setDailyCompleted('sudoku', { time, moves: moveCount });
 
     try {
       await fetch('/api/daily/sudoku', {
@@ -221,6 +227,10 @@ export function DailyGame() {
 
     if (!isPlaying) {
       setIsPlaying(true);
+    }
+
+    if (!notesMode) {
+      setDailyStarted('sudoku');
     }
 
     setMoveCount(c => c + 1);
