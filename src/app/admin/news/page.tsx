@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import AdminHeader from '@/components/admin/AdminHeader';
 import { NewsListItem } from '@/components/admin/NewsListItem';
 
 export default async function AdminNewsPage() {
@@ -17,42 +18,7 @@ export default async function AdminNewsPage() {
 
   return (
     <div className="min-h-screen bg-zinc-100">
-      {/* Admin Header */}
-      <header className="bg-zinc-900 text-white">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link href="/admin" className="text-xl font-bold">
-                Spielbar Admin
-              </Link>
-              <nav className="hidden md:flex items-center gap-4 ml-8">
-                <Link
-                  href="/admin"
-                  className="text-zinc-300 hover:text-white transition-colors"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/admin/games"
-                  className="text-zinc-300 hover:text-white transition-colors"
-                >
-                  Spiele
-                </Link>
-                <Link href="/admin/news" className="text-white font-medium">
-                  News
-                </Link>
-              </nav>
-            </div>
-            <Link
-              href="/"
-              target="_blank"
-              className="text-zinc-400 hover:text-white text-sm"
-            >
-              Seite ansehen ↗
-            </Link>
-          </div>
-        </div>
-      </header>
+      <AdminHeader active="news" />
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-8">
@@ -110,4 +76,3 @@ export default async function AdminNewsPage() {
     </div>
   );
 }
-

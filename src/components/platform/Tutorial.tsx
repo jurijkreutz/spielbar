@@ -97,7 +97,7 @@ export function TutorialOverlay({
   onSkip,
 }: TutorialOverlayProps) {
   return (
-    <div className="fixed inset-0 z-40 pointer-events-none">
+    <div className="fixed inset-0 z-[1000] pointer-events-none">
       {/* Semi-transparent overlay */}
       <div className="absolute inset-0 bg-black/20" />
 

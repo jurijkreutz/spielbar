@@ -3,7 +3,7 @@ import { MinesweeperDailyGame } from '@/games';
 import { TrackedLink } from '@/components/platform/TrackedLink';
 
 export const metadata = {
-  title: 'Daily Logic Board | Minesweeper | Spielbar',
+  title: 'Daily Minesweeper | Spielbar',
   description: 'Ein Board pro Tag – für alle gleich. Dieses Rätsel ist ohne Raten lösbar: reine Logik, ein Versuch.',
 };
 
@@ -47,7 +47,7 @@ export default function DailyPage() {
       <section className="py-8">
         <div className="max-w-2xl mx-auto px-4">
           <div className="bg-white rounded-xl border border-zinc-200 p-6">
-            <h3 className="font-bold text-zinc-900 mb-3">Über Daily Logic Board</h3>
+            <h3 className="font-bold text-zinc-900 mb-3">Über Daily Minesweeper</h3>
             <p className="text-sm text-zinc-600 mb-4">
               Ein Board pro Tag – für alle gleich. Dieses Rätsel ist ohne Raten lösbar: reine Logik, ein Versuch.
               Wenn du Hinweise nutzt, wird&apos;s vermerkt – saubere Solves bleiben etwas Besonderes.

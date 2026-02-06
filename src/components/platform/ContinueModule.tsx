@@ -55,7 +55,7 @@ export function ContinueModule({ className = '', assets = [] }: ContinueModulePr
   const isDaily = lastPlayed.mode === 'daily';
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm ${className}`}>
+    <div className={`relative overflow-hidden rounded-2xl premium-surface ${className}`}>
       {backgroundUrl ? (
         <div className="absolute inset-0">
           <img
@@ -104,7 +104,7 @@ export function ContinueModule({ className = '', assets = [] }: ContinueModulePr
         <TrackedLink
           href={lastPlayed.href}
           tracking={{ type: 'continue_click', slug: lastPlayed.slug }}
-          className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-zinc-900 text-white text-sm font-medium hover:bg-zinc-800 transition-colors shrink-0"
+          className="primary-cta inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-medium shrink-0"
         >
           Weitermachen →
         </TrackedLink>

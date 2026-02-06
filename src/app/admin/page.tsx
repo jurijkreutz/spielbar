@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { auth, signOut } from '@/lib/auth';
+import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import AdminHeader from '@/components/admin/AdminHeader';
 
 export default async function AdminDashboard() {
   const session = await auth();
@@ -19,58 +20,7 @@ export default async function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-zinc-100">
-      {/* Admin Header */}
-      <header className="bg-zinc-900 text-white">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h1 className="text-xl font-bold">Spielbar Admin</h1>
-              <nav className="hidden md:flex items-center gap-4 ml-8">
-                <Link
-                  href="/admin"
-                  className="text-zinc-300 hover:text-white transition-colors"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/admin/games"
-                  className="text-zinc-300 hover:text-white transition-colors"
-                >
-                  Spiele
-                </Link>
-                <Link
-                  href="/admin/news"
-                  className="text-zinc-300 hover:text-white transition-colors"
-                >
-                  News
-                </Link>
-              </nav>
-            </div>
-            <div className="flex items-center gap-4">
-              <Link
-                href="/"
-                target="_blank"
-                className="text-zinc-400 hover:text-white text-sm"
-              >
-                Seite ansehen ↗
-              </Link>
-              <form
-                action={async () => {
-                  'use server';
-                  await signOut({ redirectTo: '/admin/login' });
-                }}
-              >
-                <button
-                  type="submit"
-                  className="text-zinc-400 hover:text-white text-sm"
-                >
-                  Abmelden
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AdminHeader active="dashboard" />
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-8">
@@ -133,9 +83,18 @@ export default async function AdminDashboard() {
               Reihenfolge, Status und Featured ändern
             </p>
           </Link>
+          <Link
+            href="/admin/analytics"
+            className="bg-white rounded-xl border border-zinc-200 p-6 hover:border-zinc-300 hover:shadow-sm transition-all"
+          >
+            <div className="text-2xl mb-2">📊</div>
+            <h4 className="font-semibold text-zinc-900">Analytics</h4>
+            <p className="text-sm text-zinc-500 mt-1">
+              Live-Besucher und Spiel-Statistiken ansehen
+            </p>
+          </Link>
         </div>
       </main>
     </div>
   );
 }
-

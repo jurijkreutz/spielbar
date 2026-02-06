@@ -17,7 +17,7 @@ export function NewsCard({ news }: NewsCardProps) {
   return (
     <Link
       href={`/news/${news.slug}`}
-      className="group block bg-white rounded-xl border border-zinc-200 p-5 hover:border-zinc-300 hover:shadow-md transition-all"
+      className="group block premium-card rounded-2xl p-5"
     >
       {news.pinned && (
         <span className="inline-block px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800 rounded-full mb-3">
@@ -36,4 +36,3 @@ export function NewsCard({ news }: NewsCardProps) {
     </Link>
   );
 }
-

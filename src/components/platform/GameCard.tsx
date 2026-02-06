@@ -24,7 +24,7 @@ export function GameCard({ game, showLongDescription = false }: GameCardProps) {
     <div className="flex flex-col">
       <Link
         href={`/games/${game.slug}`}
-        className="group block bg-white rounded-xl border border-zinc-200 overflow-hidden hover:border-zinc-300 hover:shadow-lg transition-all flex-1"
+        className="group block premium-card rounded-2xl overflow-hidden flex-1"
       >
         <div className="aspect-video bg-zinc-100 overflow-hidden">
           {game.thumbnail ? (

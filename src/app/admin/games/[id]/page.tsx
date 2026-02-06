@@ -2,6 +2,7 @@ import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import AdminHeader from '@/components/admin/AdminHeader';
 import { GameForm } from '@/components/admin/GameForm';
 
 interface EditGamePageProps {
@@ -26,33 +27,7 @@ export default async function EditGamePage({ params }: EditGamePageProps) {
 
   return (
     <div className="min-h-screen bg-zinc-100">
-      {/* Admin Header */}
-      <header className="bg-zinc-900 text-white">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/admin" className="text-xl font-bold">
-              Spielbar Admin
-            </Link>
-            <nav className="hidden md:flex items-center gap-4 ml-8">
-              <Link
-                href="/admin"
-                className="text-zinc-300 hover:text-white transition-colors"
-              >
-                Dashboard
-              </Link>
-              <Link href="/admin/games" className="text-white font-medium">
-                Spiele
-              </Link>
-              <Link
-                href="/admin/news"
-                className="text-zinc-300 hover:text-white transition-colors"
-              >
-                News
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <AdminHeader active="games" />
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
@@ -75,4 +50,3 @@ export default async function EditGamePage({ params }: EditGamePageProps) {
     </div>
   );
 }
-

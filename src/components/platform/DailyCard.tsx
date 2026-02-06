@@ -27,7 +27,7 @@ function getTodayDateString(): string {
 
 const gameConfig = {
   minesweeper: {
-    title: 'Daily Logic Board',
+    title: 'Daily Minesweeper',
     emoji: '💣',
     href: '/games/minesweeper/daily',
     apiEndpoint: '/api/daily',
@@ -134,7 +134,7 @@ export function DailyCard({ game }: DailyCardProps) {
       <Link
         href={config.href}
         onClick={() => analytics.trackDailyCardClick(game)}
-        className={`group block bg-white rounded-2xl border ${config.borderColor} p-6 ${config.borderHover} hover:shadow-lg transition-all`}
+        className={`group block premium-lift bg-white rounded-2xl border ${config.borderColor} p-6 ${config.borderHover} transition-all`}
       >
         <div className="flex items-start gap-4">
           <div className={`w-16 h-16 bg-gradient-to-br ${config.gradientFrom} ${config.gradientTo} rounded-xl flex items-center justify-center text-3xl flex-shrink-0`}>

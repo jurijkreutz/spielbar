@@ -89,7 +89,7 @@ const DEFAULT_GAME_NAMES: Record<string, string> = {
 };
 
 const DAILY_GAME_NAMES: Record<string, string> = {
-  minesweeper: 'Daily Logic Board',
+  minesweeper: 'Daily Minesweeper',
   sudoku: 'Daily Sudoku',
 };
 

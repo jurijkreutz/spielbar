@@ -35,7 +35,7 @@ Aktuelle Spiele im Repo:
 - **StackTower** (`/games/stacktower`)
 - **Lemonade Stand** (`/games/lemonadestand`)
 - **Brick Breaker** (`/games/brick-breaker`)
-- **Daily Logic Board (Minesweeper)** (`/games/minesweeper/daily`)
+- **Daily Minesweeper** (`/games/minesweeper/daily`)
 - **Daily Sudoku** (`/games/sudoku/daily`)
 
 ---
@@ -113,7 +113,7 @@ Sudoku als fokussiertes Logic-Game – schnell zu spielen, aber mit genug Tiefe 
 
 ---
 
-## 📅 Daily Logic Board (Minesweeper)
+## 📅 Daily Minesweeper
 
 **URL:** `http://localhost:3000/games/minesweeper/daily`
 
@@ -332,7 +332,7 @@ src/
 │   ├── page.tsx                          # Startseite (Plattform-Übersicht)
 │   ├── games/
 │   │   ├── [slug]/page.tsx               # Dynamische Spielseiten
-│   │   ├── minesweeper/daily/page.tsx    # Daily Logic Board Page (Minesweeper)
+│   │   ├── minesweeper/daily/page.tsx    # Daily Minesweeper Page (Minesweeper)
 │   │   └── sudoku/daily/page.tsx         # Daily Sudoku Page
 │   ├── news/                             # News-Bereich
 │   ├── admin/                            # Admin-CMS

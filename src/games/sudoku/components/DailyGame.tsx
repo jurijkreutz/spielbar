@@ -426,7 +426,7 @@ export function DailyGame() {
                 href="/games/minesweeper/daily"
                 className="px-6 py-2.5 text-sm font-medium text-amber-700 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors"
               >
-                Daily Logic Board spielen
+                Daily Minesweeper spielen
               </a>
             </div>
           </div>

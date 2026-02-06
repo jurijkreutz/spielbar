@@ -2,7 +2,7 @@
 
 
 :root {
-  --background: #f4f4f5;
+  --background: #ffffff;
   --foreground: #18181b;
 
   /* Minesweeper Color Pulse Theme */
@@ -58,7 +58,193 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* ===== Premium Section System ===== */
+.hero-surface {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(720px 320px at 50% -10%, rgba(248, 250, 252, 0.9), rgba(255, 255, 255, 0) 70%);
+}
+
+.hero-surface::before {
+  content: "";
+  position: absolute;
+  inset: -8% -4% -12%;
+  background-image: url("/header.png");
+  background-size: cover;
+  background-position: center calc(75% + var(--hero-parallax, 0px));
+  background-repeat: no-repeat;
+  filter: blur(4px) saturate(0.85);
+  opacity: 0.25;
+  transform: scale(1.05);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.92)),
+    radial-gradient(420px 220px at 65% 0%, rgba(255, 247, 230, 0.6), transparent 65%);
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hero-surface > * {
+  position: relative;
+  z-index: 2;
+}
+
+.section-tint {
+  position: relative;
+  isolation: isolate;
+}
+
+.section-tint::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
+  background-size: 120px 120px;
+  opacity: 0.02;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.section-tint > * {
+  position: relative;
+  z-index: 1;
+}
+
+.section-daily {
+  background: linear-gradient(180deg, #f9fafb 0%, #f7f9fc 100%);
+}
+
+.section-featured {
+  background: linear-gradient(180deg, #fff8ec 0%, #fff5e1 100%);
+}
+
+.premium-divider {
+  position: relative;
+  height: 16px;
+  background: linear-gradient(180deg, #f7f9fc 0%, #fff8ec 100%);
+}
+
+.premium-divider::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 6%;
+  right: 6%;
+  height: 1px;
+  background: rgba(24, 24, 27, 0.06);
+}
+
+.spotlight-card {
+  position: relative;
+  border: 1px solid rgba(24, 24, 27, 0.08);
+  box-shadow:
+    0 24px 60px rgba(24, 24, 27, 0.12),
+    0 8px 20px rgba(24, 24, 27, 0.07);
+  transition: transform 300ms ease, box-shadow 300ms ease;
+}
+
+.spotlight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(900px 420px at 0% 0%, rgba(255, 255, 255, 0.7), transparent 60%);
+  opacity: 0.6;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.spotlight-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.spotlight-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 32px 70px rgba(24, 24, 27, 0.14),
+    0 12px 26px rgba(24, 24, 27, 0.08);
+}
+
+.premium-surface {
+  border: 1px solid rgba(24, 24, 27, 0.08);
+  background: #ffffff;
+  box-shadow:
+    0 10px 26px rgba(24, 24, 27, 0.06),
+    0 2px 6px rgba(24, 24, 27, 0.04);
+}
+
+.premium-card {
+  border: 1px solid rgba(24, 24, 27, 0.08);
+  background: #ffffff;
+  box-shadow:
+    0 12px 28px rgba(24, 24, 27, 0.08),
+    0 4px 10px rgba(24, 24, 27, 0.05);
+  transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease;
+}
+
+.premium-card:hover {
+  border-color: rgba(24, 24, 27, 0.14);
+  box-shadow:
+    0 20px 40px rgba(24, 24, 27, 0.12),
+    0 8px 16px rgba(24, 24, 27, 0.07);
+  transform: translateY(-2px);
+}
+
+.premium-lift {
+  box-shadow:
+    0 12px 28px rgba(24, 24, 27, 0.08),
+    0 4px 10px rgba(24, 24, 27, 0.05);
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+.premium-lift:hover {
+  box-shadow:
+    0 18px 36px rgba(24, 24, 27, 0.12),
+    0 6px 14px rgba(24, 24, 27, 0.06);
+  transform: translateY(-2px);
+}
+
+.primary-cta {
+  position: relative;
+  background: #111113;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 14px 30px rgba(24, 24, 27, 0.18),
+    0 4px 10px rgba(24, 24, 27, 0.12);
+  transition: transform 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+}
+
+.primary-cta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 60%);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.primary-cta:hover {
+  transform: translateY(-1px);
+  background: #1c1c20;
+  box-shadow:
+    0 18px 40px rgba(24, 24, 27, 0.2),
+    0 6px 14px rgba(24, 24, 27, 0.14);
 }
 
 /* Prevent text selection during gameplay */
@@ -324,12 +510,15 @@ button {
 
 /* ===== Retro Badge Animation (Minecraft-Style) ===== */
 
-@keyframes retroBlink {
-  0%, 49% {
+@keyframes retroBlinkSoft {
+  0%, 72% {
     opacity: 1;
   }
-  50%, 100% {
-    opacity: 0;
+  85% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 1;
   }
 }
 
@@ -343,14 +532,23 @@ button {
 }
 
 .retro-badge {
-  background: linear-gradient(135deg, #ffeb3b 0%, #ffc107 100%);
-  color: #000;
-  border: 2px solid #000;
+  background: linear-gradient(135deg, #fff3d9 0%, #ffe9c1 100%);
+  color: #7c2d12;
+  border: 1px solid rgba(24, 24, 27, 0.12);
   box-shadow:
-    2px 2px 0 #000,
-    4px 4px 0 rgba(0, 0, 0, 0.2);
-  animation: retroBlink 1.5s infinite;
-  font-family: monospace;
-  letter-spacing: 0.05em;
-  font-weight: 700;
+    0 8px 22px rgba(24, 24, 27, 0.14);
+  animation: fadeIn 0.6s ease, retroBlinkSoft 5.6s ease-in-out 1.2s infinite;
+  font-family: inherit;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transform-origin: center;
+  cursor: default;
+  user-select: none;
+}
+
+.retro-badge:hover {
+  transform: scale(1.14);
+  box-shadow:
+    0 10px 28px rgba(24, 24, 27, 0.16);
 }

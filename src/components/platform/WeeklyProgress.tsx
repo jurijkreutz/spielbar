@@ -32,7 +32,7 @@ export function WeeklyProgress({ className = '' }: WeeklyProgressProps) {
   }
 
   return (
-    <div className={`rounded-xl border border-zinc-200 bg-white px-4 py-3 shadow-sm ${className}`}>
+    <div className={`rounded-xl premium-surface px-4 py-3 ${className}`}>
       <p className="text-[11px] uppercase tracking-wide text-zinc-400">Diese Woche</p>
       <p className="text-sm text-zinc-700 mt-1">{text}</p>
     </div>

@@ -217,7 +217,7 @@ export function DailyGame() {
       setGameState('playing');
       // Track game start (Ticket 7.1)
       analytics.trackGameStart('minesweeper', 'daily', {
-        name: 'Daily Logic Board',
+        name: 'Daily Minesweeper',
         href: '/games/minesweeper/daily',
       });
     }
@@ -379,7 +379,7 @@ export function DailyGame() {
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-medium mb-2">
           📅 Heute
         </div>
-        <h2 className="text-xl font-bold text-zinc-900">Daily Logic Board</h2>
+        <h2 className="text-xl font-bold text-zinc-900">Daily Minesweeper</h2>
         <p className="text-sm text-zinc-500 mt-1">
           {new Date(dailyData.date).toLocaleDateString('de-AT', {
             weekday: 'long',

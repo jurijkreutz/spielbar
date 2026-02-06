@@ -9,6 +9,7 @@ import { WeeklyProgress } from '@/components/platform/WeeklyProgress';
 import { ContinueModule } from '@/components/platform/ContinueModule';
 import { TrackedLink } from '@/components/platform/TrackedLink';
 import { RandomBadge } from '@/components/RandomBadge';
+import { HeroParallax } from '@/components/platform/HeroParallax';
 
 export const metadata = {
   title: 'Spielbar | Browsergames. Sofort spielbar.',
@@ -39,12 +40,13 @@ export default async function Home() {
   }));
 
   return (
-    <main className="min-h-screen bg-zinc-50">
+    <main className="min-h-screen bg-white">
       {/* Analytics Tracker */}
       <LandingTracker />
 
       {/* Hero / Above the fold */}
-      <section className="bg-white border-b border-zinc-200">
+      <section className="bg-white border-b border-zinc-100 hero-surface">
+        <HeroParallax />
         <div className="max-w-6xl mx-auto px-4 py-12 md:py-20">
           <div className="text-center">
             {/* Logo */}
@@ -55,7 +57,7 @@ export default async function Home() {
                   alt="Spielbar"
                   className="h-14 md:h-16"
                 />
-                <div className="absolute -top-3 -right-10 md:-right-12 rotate-12 pointer-events-none">
+                <div className="absolute -top-3 -right-10 md:-right-12 rotate-12">
                   <RandomBadge />
                 </div>
               </div>
@@ -73,7 +75,7 @@ export default async function Home() {
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
               <PlayTodayButton
                 href="/games/minesweeper/daily"
-                className="px-8 py-4 bg-zinc-900 text-white text-lg font-semibold rounded-xl hover:bg-zinc-800 transition-colors shadow-lg hover:shadow-xl"
+                className="primary-cta px-8 py-4 text-lg font-semibold rounded-xl"
               >
                 Daily spielen
               </PlayTodayButton>
@@ -89,21 +91,21 @@ export default async function Home() {
       </section>
 
       {/* Daily Challenges Section (Ticket 2.1 - oben, vor Featured) */}
-      <section className="py-12 bg-gradient-to-br from-amber-50 via-white to-blue-50 border-b border-zinc-200">
+      <section className="section-tint section-daily pt-12 pb-6 md:pt-14 md:pb-8">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-            <div className="text-center md:text-left">
-              <h2 className="text-2xl md:text-3xl font-bold text-zinc-900">
-                Daily
-              </h2>
-              <p className="mt-2 text-zinc-600">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] items-end gap-4 md:gap-6 mb-8 md:mb-10">
+            <div className="text-left max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-900/70">
                 Zwei tägliche Rätsel – für alle gleich.
               </p>
+              <h2 className="mt-2 text-2xl md:text-3xl font-bold text-zinc-900">
+                Heute
+              </h2>
             </div>
-            <WeeklyProgress className="w-full md:w-auto" />
+            <WeeklyProgress className="w-full sm:w-auto md:justify-self-end" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
             <DailyCard game="minesweeper" />
             <DailyCard game="sudoku" />
           </div>
@@ -112,75 +114,78 @@ export default async function Home() {
 
       {/* Featured Game Section (Ticket 2.2) */}
       {featuredGame && (
-        <section className="py-16 bg-gradient-to-b from-amber-50 via-white to-white border-b border-zinc-200">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="text-center mb-10">
-              <span className="inline-block px-3 py-1 text-sm font-medium bg-amber-100 text-amber-800 rounded-full mb-3">
-                ⭐ Empfehlung der Redaktion
-              </span>
-              <h2 className="text-2xl md:text-3xl font-bold text-zinc-900">
-                Der Limonaden-Klicker
-              </h2>
-            </div>
+        <>
+          <div className="premium-divider" aria-hidden="true" />
+          <section className="section-tint section-featured pt-10 pb-20 md:pt-12 md:pb-24">
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="mb-10 md:mb-12 text-left">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-900/70">
+                  Empfohlen
+                </p>
+                <h2 className="mt-3 text-2xl md:text-3xl font-bold text-zinc-900">
+                  Der Limonaden-Klicker
+                </h2>
+              </div>
 
-            <div className="max-w-5xl mx-auto">
-              <TrackedLink
-                href={`/games/${featuredGame.slug}`}
-                tracking={{ type: 'featured_card_click', slug: featuredGame.slug }}
-                className="group block"
-              >
-                <div className="relative bg-white rounded-3xl shadow-xl shadow-zinc-200/50 overflow-hidden border border-zinc-100 hover:shadow-2xl hover:shadow-zinc-300/50 transition-all duration-300 hover:-translate-y-1">
-                  <div className="flex flex-col lg:flex-row">
-                    {/* Großes Thumbnail */}
-                    <div className="relative lg:w-1/2 aspect-[4/3] lg:aspect-auto">
-                      <div className="absolute inset-0 bg-gradient-to-br from-amber-400/20 to-orange-500/20"></div>
-                      {featuredGame.thumbnail ? (
-                        <img
-                          src={featuredGame.thumbnail}
-                          alt={featuredGame.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
-                          <span className="text-6xl">🎮</span>
-                        </div>
-                      )}
-                      {featuredGame.badge && (
-                        <div className="absolute top-4 left-4">
-                          <span className="px-3 py-1.5 text-sm font-semibold bg-amber-400 text-amber-900 rounded-full shadow-lg">
-                            {featuredGame.badge}
+              <div className="w-full">
+                <TrackedLink
+                  href={`/games/${featuredGame.slug}`}
+                  tracking={{ type: 'featured_card_click', slug: featuredGame.slug }}
+                  className="group block"
+                >
+                  <div className="spotlight-card relative bg-white rounded-3xl overflow-hidden">
+                    <div className="flex flex-col lg:flex-row">
+                      {/* Großes Thumbnail */}
+                      <div className="relative lg:w-1/2 aspect-[4/3] lg:aspect-auto">
+                        <div className="absolute inset-0 bg-gradient-to-br from-amber-400/20 to-orange-500/20"></div>
+                        {featuredGame.thumbnail ? (
+                          <img
+                            src={featuredGame.thumbnail}
+                            alt={featuredGame.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center">
+                            <span className="text-6xl">🎮</span>
+                          </div>
+                        )}
+                        {featuredGame.badge && (
+                          <div className="absolute top-4 left-4">
+                            <span className="px-3 py-1.5 text-sm font-semibold bg-amber-400 text-amber-900 rounded-full shadow-lg">
+                              {featuredGame.badge}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div className="lg:w-1/2 p-8 md:p-10 flex flex-col justify-center">
+                        <h3 className="text-3xl md:text-4xl font-bold text-zinc-900 group-hover:text-amber-600 transition-colors">
+                          {featuredGame.name}
+                        </h3>
+                        <p className="mt-4 text-lg text-zinc-600 leading-relaxed">
+                          {featuredGame.shortDescription}
+                        </p>
+                        <div className="mt-8">
+                          <span className="primary-cta inline-flex items-center gap-2 px-6 py-3 font-medium rounded-xl">
+                            Jetzt spielen
+                            <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
                           </span>
                         </div>
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="lg:w-1/2 p-8 md:p-10 flex flex-col justify-center">
-                      <h3 className="text-3xl md:text-4xl font-bold text-zinc-900 group-hover:text-amber-600 transition-colors">
-                        {featuredGame.name}
-                      </h3>
-                      <p className="mt-4 text-lg text-zinc-600 leading-relaxed">
-                        {featuredGame.shortDescription}
-                      </p>
-                      <div className="mt-8">
-                        <span className="inline-flex items-center gap-2 px-6 py-3 bg-zinc-900 text-white font-medium rounded-xl group-hover:bg-amber-500 group-hover:text-amber-900 transition-colors">
-                          Jetzt spielen
-                          <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                          </svg>
-                        </span>
                       </div>
                     </div>
                   </div>
-                </div>
-              </TrackedLink>
+                </TrackedLink>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </>
       )}
 
       {/* Games Grid (Ticket 2.1 - unten) */}
-      <section id="alle-spiele" className="py-16 scroll-mt-8">
+      <section id="alle-spiele" className="py-16 bg-white border-t border-zinc-100 scroll-mt-8">
         <div className="max-w-6xl mx-auto px-4 space-y-12">
           <ContinueModule assets={continueAssets} />
           {games.length === 0 ? (
@@ -220,7 +225,7 @@ export default async function Home() {
 
       {/* News Section */}
       {news.length > 0 && (
-        <section className="py-16 bg-white border-t border-zinc-200">
+        <section className="py-16 bg-white border-t border-zinc-100">
           <div className="max-w-6xl mx-auto px-4">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-bold text-zinc-900">Neuigkeiten</h2>
@@ -241,7 +246,7 @@ export default async function Home() {
       )}
 
       {/* About Section (Ticket 5.1) */}
-      <section className="py-16 border-t border-zinc-200">
+      <section className="py-16 border-t border-zinc-100">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <h2 className="text-2xl font-bold text-zinc-900 mb-4">
             Was ist Spielbar?

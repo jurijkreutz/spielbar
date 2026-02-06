@@ -58,7 +58,7 @@ model News {
   @@map("news")
 }
 
-// Daily Logic Board - Tägliches, garantiert lösbares Minesweeper
+// Daily Minesweeper - Tägliches, garantiert lösbares Minesweeper
 model DailyBoard {
   id            String   @id @default(cuid())
   date          String   @unique // Format: YYYY-MM-DD
@@ -126,4 +126,14 @@ model DailySudokuAttempt {
 
   @@unique([date, playerId])
   @@map("daily_sudoku_attempts")
+}
+
+// Live-Besucher Heartbeat (DSGVO-konform, anonymer Token, auto-purge nach 2 Min)
+model SiteHeartbeat {
+  id        String   @id @default(cuid())
+  token     String   @unique          // anonymer Session-Token (NICHT player UUID)
+  page      String?                    // aktuelle Seite (optional)
+  updatedAt DateTime @default(now())   @map("updated_at")
+
+  @@map("site_heartbeats")
 }
