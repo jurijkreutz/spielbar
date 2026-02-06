@@ -1,8 +1,97 @@
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 
 const prisma = new PrismaClient();
+
+interface SeedNewsEntry {
+  slug: string;
+  title: string;
+  teaser?: string | null;
+  content: string;
+  thumbnail?: string | null;
+  status?: string;
+  pinned?: boolean;
+  publishedAt?: string | null;
+}
+
+const DEFAULT_SEED_NEWS: SeedNewsEntry[] = [
+  {
+    slug: 'willkommen-auf-spielbar',
+    title: 'Willkommen auf Spielbar!',
+    teaser: 'Unsere neue Plattform für österreichische Casual-Browsergames ist online.',
+    content: `# Willkommen auf Spielbar!
+
+Wir freuen uns, euch unsere neue Plattform für simple, hochwertige Browsergames vorzustellen.
+
+## Was ist Spielbar?
+
+Spielbar ist eine Sammlung von fokussierten, gut gemachten Casual-Games – ohne Ablenkung, ohne Overhead. Einfach spielen.
+
+## Unser erstes Spiel: Minesweeper
+
+Zum Start haben wir den Klassiker Minesweeper komplett neu gebaut:
+- Modernes, cleanes Design
+- Proof-Mode für verifizierte Skill-Runs
+- Intelligente Analyse bei Game Over
+
+Weitere Spiele sind bereits in Entwicklung. Schaut regelmäßig vorbei!
+
+*Euer Spielbar-Team*`,
+    status: 'published',
+    pinned: true,
+    publishedAt: new Date().toISOString(),
+  },
+];
+
+function parseSeedNews(raw: unknown): SeedNewsEntry[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+
+  return raw
+    .filter((entry): entry is Record<string, unknown> => typeof entry === 'object' && entry !== null)
+    .map((entry) => ({
+      slug: typeof entry.slug === 'string' ? entry.slug : '',
+      title: typeof entry.title === 'string' ? entry.title : '',
+      teaser: typeof entry.teaser === 'string' ? entry.teaser : null,
+      content: typeof entry.content === 'string' ? entry.content : '',
+      thumbnail: typeof entry.thumbnail === 'string' ? entry.thumbnail : null,
+      status: typeof entry.status === 'string' ? entry.status : 'draft',
+      pinned: entry.pinned === true,
+      publishedAt: typeof entry.publishedAt === 'string' ? entry.publishedAt : null,
+    }))
+    .filter((entry) => entry.slug && entry.title && entry.content);
+}
+
+async function loadSeedNews(): Promise<SeedNewsEntry[]> {
+  const filePath = path.join(process.cwd(), 'prisma', 'seed-data', 'news.json');
+
+  try {
+    const fileContent = await readFile(filePath, 'utf8');
+    const parsed = parseSeedNews(JSON.parse(fileContent));
+
+    if (parsed.length === 0) {
+      return DEFAULT_SEED_NEWS;
+    }
+
+    return parsed;
+  } catch (error) {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      (error as { code?: unknown }).code === 'ENOENT'
+    ) {
+      return DEFAULT_SEED_NEWS;
+    }
+
+    console.warn('⚠️ Konnte prisma/seed-data/news.json nicht laden, nutze Default-News');
+    return DEFAULT_SEED_NEWS;
+  }
+}
 
 async function main() {
 
@@ -224,39 +313,44 @@ Fülle das 9×9 Gitter so aus, dass jede Zeile, jede Spalte und jedes 3×3 Feld 
 
     console.log('✅ Game created:', sudoku.name);
 
-    // Willkommens-News
-    const welcomeNews = await prisma.news.upsert({
-      where: { slug: 'willkommen-auf-spielbar' },
-      update: {},
-      create: {
-        slug: 'willkommen-auf-spielbar',
-        title: 'Willkommen auf Spielbar!',
-        teaser: 'Unsere neue Plattform für österreichische Casual-Browsergames ist online.',
-        content: `# Willkommen auf Spielbar!
+    // News aus versionierter Seed-Datei laden und idempotent einspielen
+    const seedNews = await loadSeedNews();
 
-Wir freuen uns, euch unsere neue Plattform für simple, hochwertige Browsergames vorzustellen.
+    for (const seedEntry of seedNews) {
+      const status = seedEntry.status === 'published' ? 'published' : 'draft';
+      const parsedPublishedAt = seedEntry.publishedAt ? new Date(seedEntry.publishedAt) : null;
+      const publishedAt =
+        parsedPublishedAt && !Number.isNaN(parsedPublishedAt.getTime())
+          ? parsedPublishedAt
+          : status === 'published'
+            ? new Date()
+            : null;
 
-## Was ist Spielbar?
+      const news = await prisma.news.upsert({
+        where: { slug: seedEntry.slug },
+        update: {
+          title: seedEntry.title,
+          teaser: seedEntry.teaser || null,
+          content: seedEntry.content,
+          thumbnail: seedEntry.thumbnail || null,
+          status,
+          pinned: seedEntry.pinned === true,
+          publishedAt,
+        },
+        create: {
+          slug: seedEntry.slug,
+          title: seedEntry.title,
+          teaser: seedEntry.teaser || null,
+          content: seedEntry.content,
+          thumbnail: seedEntry.thumbnail || null,
+          status,
+          pinned: seedEntry.pinned === true,
+          publishedAt,
+        },
+      });
 
-Spielbar ist eine Sammlung von fokussierten, gut gemachten Casual-Games – ohne Ablenkung, ohne Overhead. Einfach spielen.
-
-## Unser erstes Spiel: Minesweeper
-
-Zum Start haben wir den Klassiker Minesweeper komplett neu gebaut:
-- Modernes, cleanes Design
-- Proof-Mode für verifizierte Skill-Runs
-- Intelligente Analyse bei Game Over
-
-Weitere Spiele sind bereits in Entwicklung. Schaut regelmäßig vorbei!
-
-*Euer Spielbar-Team*`,
-        status: 'published',
-        pinned: true,
-        publishedAt: new Date(),
-      },
-    });
-
-    console.log('✅ News created:', welcomeNews.title);
+      console.log('✅ News synced:', news.title);
+    }
   } finally {
     await prisma.$disconnect();
   }
@@ -266,4 +360,3 @@ main().catch((e) => {
   console.error(e);
   process.exit(1);
 });
-

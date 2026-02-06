@@ -13,6 +13,7 @@
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:seed": "npx tsx prisma/seed.ts",
+    "news:export": "npx tsx scripts/export-news.ts",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate"
   },

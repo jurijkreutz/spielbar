@@ -14,6 +14,9 @@ npx prisma migrate deploy
 # Optional: Seed-Daten laden
 npm run db:seed
 
+# Wenn du lokal News erstellt/editiert hast:
+npm run news:export
+
 # Entwicklungsserver starten
 npm run dev
 ```
@@ -406,6 +409,10 @@ npx prisma migrate deploy
 # 2) Optional: Seed laden
 npm run db:seed
 
+# 3) Lokale News als versionierte Seed-Daten exportieren
+# (vor Commit/Push ausführen)
+npm run news:export
+
 # Prisma Studio (Datenbank-GUI)
 npm run db:studio
 
@@ -422,6 +429,18 @@ npx prisma generate
 - Für Setup von Mensch/Agent immer zuerst `npx prisma migrate deploy`.
 - Keine Schema-Änderungen nur mit `db push` einspielen, wenn sie versioniert sein sollen.
 - Bei einem komplett frischen lokalen Start kann `prisma/dev.db` gelöscht und danach `npx prisma migrate deploy` erneut ausgeführt werden.
+
+### News von lokal nach Prod übernehmen
+
+Lokale News liegen in deiner SQLite-DB und sind per `.gitignore` nicht im Repo.
+Damit News beim Push in Prod ankommen:
+
+1. News lokal im Admin veröffentlichen (`/admin/news`)
+2. `npm run news:export` ausführen
+3. Die Datei `prisma/seed-data/news.json` committen und pushen
+4. In Prod `npx prisma migrate deploy && npm run db:seed` ausführen
+
+`db:seed` spielt die News aus `prisma/seed-data/news.json` idempotent per Upsert ein.
 
 ### Datenbank-Modelle
 
