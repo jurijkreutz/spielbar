@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import { readStorage, removeStorage, writeStorage } from '@/lib/safeStorage';
 
 export type TutorialStep = {
   id: string;
@@ -23,8 +24,7 @@ export function useTutorialBase({ steps, storageKey, startActive = true }: UseTu
 
   // Initialize on client-side only to avoid hydration mismatch
   useEffect(() => {
-    const tutorialCompleted =
-      typeof window === 'undefined' ? null : localStorage.getItem(storageKey);
+    const tutorialCompleted = readStorage('local', storageKey);
     setIsActive(startActive && !tutorialCompleted);
     setIsInitialized(true);
   }, [storageKey, startActive]);
@@ -34,9 +34,7 @@ export function useTutorialBase({ steps, storageKey, startActive = true }: UseTu
 
   const completeTutorial = useCallback(() => {
     setIsActive(false);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(storageKey, 'true');
-    }
+    writeStorage('local', storageKey, 'true');
   }, [storageKey]);
 
   const nextStep = useCallback(() => {
@@ -54,9 +52,7 @@ export function useTutorialBase({ steps, storageKey, startActive = true }: UseTu
   const restartTutorial = useCallback(() => {
     setCurrentStepIndex(0);
     setIsActive(true);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(storageKey);
-    }
+    removeStorage('local', storageKey);
   }, [storageKey]);
 
   const handleAction = useCallback((action: string) => {

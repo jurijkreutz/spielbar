@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { readStorage, writeStorage } from '@/lib/safeStorage';
 
 type Theme = 'classic' | 'pulse';
 
@@ -20,7 +21,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+    const stored = readStorage('local', THEME_STORAGE_KEY) as Theme | null;
     if (stored && (stored === 'classic' || stored === 'pulse')) {
       setThemeState(stored);
       document.documentElement.setAttribute('data-theme', stored);
@@ -29,7 +30,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+    writeStorage('local', THEME_STORAGE_KEY, newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
@@ -64,7 +65,7 @@ export function ThemeToggle() {
 
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+    const stored = readStorage('local', THEME_STORAGE_KEY) as Theme | null;
     if (stored && (stored === 'classic' || stored === 'pulse')) {
       setTheme(stored);
     }
@@ -73,7 +74,7 @@ export function ThemeToggle() {
   const toggleTheme = () => {
     const newTheme = theme === 'classic' ? 'pulse' : 'classic';
     setTheme(newTheme);
-    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+    writeStorage('local', THEME_STORAGE_KEY, newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
@@ -109,4 +110,3 @@ export function ThemeToggle() {
     </button>
   );
 }
-

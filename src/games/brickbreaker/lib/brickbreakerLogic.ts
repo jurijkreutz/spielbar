@@ -39,7 +39,7 @@ export function countBricksInPattern(pattern: readonly string[]): number {
 export function buildBricks(
   level: number,
   config: BrickLayoutConfig,
-  patterns: readonly string[][] = LEVEL_PATTERNS
+  patterns: readonly (readonly string[])[] = LEVEL_PATTERNS
 ): Brick[] {
   const pattern = patterns[level - 1] || patterns[0];
   const cols = pattern[0].length;

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { readStorage, writeStorage } from '@/lib/safeStorage';
 import {
   GameState,
   GameStats,
@@ -51,12 +52,8 @@ function getUpgradeCost(upgradeId: string, currentLevel: number): number {
 }
 
 function loadGame(): GameState {
-  if (typeof window === 'undefined') {
-    return getInitialState();
-  }
-
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = readStorage('local', STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
       return {
@@ -71,8 +68,8 @@ function loadGame(): GameState {
         allMaxedAt: parsed.allMaxedAt ?? null,
       };
     }
-  } catch (e) {
-    console.error('Failed to load game:', e);
+  } catch {
+    // Ignore invalid/missing storage
   }
 
   return getInitialState();
@@ -93,17 +90,13 @@ function getInitialState(): GameState {
 }
 
 function saveGame(state: GameState) {
-  if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        ...state,
-        lastSaveTime: Date.now(),
-      })
-    );
-  } catch (e) {
-    console.error('Failed to save game:', e);
+    writeStorage('local', STORAGE_KEY, JSON.stringify({
+      ...state,
+      lastSaveTime: Date.now(),
+    }));
+  } catch {
+    // Ignore storage errors
   }
 }
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { readStorage, writeStorage } from '@/lib/safeStorage';
 
 type Theme = 'light' | 'dark';
 
@@ -12,8 +13,7 @@ export function useDarkMode() {
 
   useEffect(() => {
     setMounted(true);
-    // Prüfe localStorage
-    const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+    const stored = readStorage('local', THEME_STORAGE_KEY) as Theme | null;
     if (stored && (stored === 'light' || stored === 'dark')) {
       setThemeState(stored);
       document.documentElement.classList.toggle('dark', stored === 'dark');
@@ -27,7 +27,7 @@ export function useDarkMode() {
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+    writeStorage('local', THEME_STORAGE_KEY, newTheme);
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
@@ -44,7 +44,7 @@ export function DarkModeToggle() {
   if (!mounted) {
     return (
       <button
-        className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400"
+        className="h-10 w-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center"
         aria-label="Theme umschalten"
       >
         <span className="text-lg">🌙</span>
@@ -55,11 +55,10 @@ export function DarkModeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+      className="h-10 w-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex items-center justify-center"
       aria-label={theme === 'light' ? 'Zu Dark Mode wechseln' : 'Zu Light Mode wechseln'}
     >
       <span className="text-lg">{theme === 'light' ? '🌙' : '☀️'}</span>
     </button>
   );
 }
-

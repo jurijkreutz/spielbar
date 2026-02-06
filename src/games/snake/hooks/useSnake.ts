@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { readStorage, writeStorage } from '@/lib/safeStorage';
 import type {
   GameState,
   Direction,
@@ -19,9 +20,8 @@ const STORAGE_KEY = 'snake-highscores';
 
 // Helper to load high scores from localStorage
 function loadHighScores(): HighScores {
-  if (typeof window === 'undefined') return { best: 0, lastScore: 0, bestCombo: 0, bestLength: 0, bestTime: 0 };
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = readStorage('local', STORAGE_KEY);
     return stored ? JSON.parse(stored) : { best: 0, lastScore: 0, bestCombo: 0, bestLength: 0, bestTime: 0 };
   } catch {
     return { best: 0, lastScore: 0, bestCombo: 0, bestLength: 0, bestTime: 0 };
@@ -30,9 +30,8 @@ function loadHighScores(): HighScores {
 
 // Helper to save high scores
 function saveHighScores(scores: HighScores): void {
-  if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(scores));
+    writeStorage('local', STORAGE_KEY, JSON.stringify(scores));
   } catch {
     // Ignore storage errors
   }

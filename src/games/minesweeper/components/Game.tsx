@@ -10,16 +10,17 @@ import { ThemeToggle } from '@/components/ThemeContext';
 import { findProof, type ProofResult } from '../lib/proofSolver';
 import { analytics } from '@/lib/analytics';
 import { InfoTooltip } from '@/components/platform/InfoTooltip';
+import { readStorage, writeStorage } from '@/lib/safeStorage';
 import type { Difficulty, GameConfig, BestTimes } from '../types/minesweeper';
 import { DIFFICULTY_CONFIGS } from '../types/minesweeper';
 
 const BEST_TIMES_KEY = 'minesweeper-best-times';
 const SKILL_VERIFIED_KEY = 'minesweeper-skill-verified-times';
+type TouchActionMode = 'reveal' | 'flag' | 'chord';
 
 function loadBestTimes(): BestTimes {
-  if (typeof window === 'undefined') return {};
   try {
-    const stored = localStorage.getItem(BEST_TIMES_KEY);
+    const stored = readStorage('local', BEST_TIMES_KEY);
     return stored ? JSON.parse(stored) : {};
   } catch {
     return {};
@@ -27,18 +28,16 @@ function loadBestTimes(): BestTimes {
 }
 
 function saveBestTimes(times: BestTimes) {
-  if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(BEST_TIMES_KEY, JSON.stringify(times));
+    writeStorage('local', BEST_TIMES_KEY, JSON.stringify(times));
   } catch {
     // Ignore storage errors
   }
 }
 
 function loadSkillVerifiedTimes(): BestTimes {
-  if (typeof window === 'undefined') return {};
   try {
-    const stored = localStorage.getItem(SKILL_VERIFIED_KEY);
+    const stored = readStorage('local', SKILL_VERIFIED_KEY);
     return stored ? JSON.parse(stored) : {};
   } catch {
     return {};
@@ -46,15 +45,17 @@ function loadSkillVerifiedTimes(): BestTimes {
 }
 
 function saveSkillVerifiedTimes(times: BestTimes) {
-  if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(SKILL_VERIFIED_KEY, JSON.stringify(times));
+    writeStorage('local', SKILL_VERIFIED_KEY, JSON.stringify(times));
   } catch {
     // Ignore storage errors
   }
 }
 
 export function Game() {
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [touchActionMode, setTouchActionMode] = useState<TouchActionMode>('reveal');
+  const [boardZoom, setBoardZoom] = useState(1);
   const [difficulty, setDifficulty] = useState<Difficulty>('beginner');
   const [customConfig, setCustomConfig] = useState<GameConfig>({
     rows: 10,
@@ -86,6 +87,42 @@ export function Game() {
   const config =
     difficulty === 'custom' ? customConfig : DIFFICULTY_CONFIGS[difficulty];
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const mediaQuery = window.matchMedia('(pointer: coarse)');
+    const updateTouch = () => {
+      setIsTouchDevice(
+        mediaQuery.matches || navigator.maxTouchPoints > 0 || window.innerWidth < 768
+      );
+    };
+    updateTouch();
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', updateTouch);
+      return () => mediaQuery.removeEventListener('change', updateTouch);
+    }
+
+    mediaQuery.addListener(updateTouch);
+    return () => mediaQuery.removeListener(updateTouch);
+  }, []);
+
+  useEffect(() => {
+    if (!isTouchDevice) {
+      setBoardZoom(1);
+      return;
+    }
+
+    const cols = config.cols;
+    if (cols >= 28) {
+      setBoardZoom(0.82);
+    } else if (cols >= 20) {
+      setBoardZoom(0.9);
+    } else {
+      setBoardZoom(1);
+    }
+  }, [config.cols, isTouchDevice]);
+
   const {
     board,
     gameState,
@@ -103,6 +140,18 @@ export function Game() {
     if (gameState !== 'playing') return null;
     return findProof(board);
   }, [board, gameState]);
+
+  const baseCellSize = useMemo(() => {
+    if (!isTouchDevice) return 28;
+    if (config.cols >= 28) return 24;
+    if (config.cols >= 20) return 26;
+    return 28;
+  }, [config.cols, isTouchDevice]);
+
+  const boardCellSize = useMemo(
+    () => Math.max(22, Math.round(baseCellSize * boardZoom)),
+    [baseCellSize, boardZoom]
+  );
 
   // Track game start when first cell is clicked
   const [gameStartTracked, setGameStartTracked] = useState(false);
@@ -196,6 +245,11 @@ export function Game() {
     setHighlightedCells(new Set());
   }, []);
 
+  const clearProofOverlay = useCallback(() => {
+    setShowProofHint(false);
+    setHighlightedCells(new Set());
+  }, []);
+
   // Wrap click handlers to also notify tutorial
   const wrappedCellClick = useCallback((row: number, col: number) => {
     // Track game start on first click (Ticket 7.1)
@@ -208,17 +262,39 @@ export function Game() {
     }
     handleCellClick(row, col);
     handleTutorialAction('click');
-    // Clear proof hint when player makes a move
-    setShowProofHint(false);
-    setHighlightedCells(new Set());
-  }, [handleCellClick, handleTutorialAction, gameStartTracked, gameState]);
+    clearProofOverlay();
+  }, [handleCellClick, handleTutorialAction, gameStartTracked, gameState, clearProofOverlay]);
 
   const wrappedCellRightClick = useCallback((row: number, col: number) => {
     handleCellRightClick(row, col);
     handleTutorialAction('rightclick');
-    setShowProofHint(false);
-    setHighlightedCells(new Set());
-  }, [handleCellRightClick, handleTutorialAction]);
+    clearProofOverlay();
+  }, [handleCellRightClick, handleTutorialAction, clearProofOverlay]);
+
+  const wrappedChordClick = useCallback((row: number, col: number) => {
+    handleChordClick(row, col);
+    handleTutorialAction('chord');
+    clearProofOverlay();
+  }, [handleChordClick, handleTutorialAction, clearProofOverlay]);
+
+  const handlePrimaryCellAction = useCallback((row: number, col: number) => {
+    if (!isTouchDevice) {
+      wrappedCellClick(row, col);
+      return;
+    }
+
+    if (touchActionMode === 'flag') {
+      wrappedCellRightClick(row, col);
+      return;
+    }
+
+    if (touchActionMode === 'chord') {
+      wrappedChordClick(row, col);
+      return;
+    }
+
+    wrappedCellClick(row, col);
+  }, [isTouchDevice, touchActionMode, wrappedCellClick, wrappedCellRightClick, wrappedChordClick]);
 
   // Keyboard shortcut for new game
   useEffect(() => {
@@ -238,7 +314,7 @@ export function Game() {
   }, [resetGame, handleProofRequest, gameState]);
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center w-full">
       <Header
         minesRemaining={minesRemaining}
         time={time}
@@ -257,7 +333,7 @@ export function Game() {
             <button
               onClick={handleProofRequest}
               disabled={!availableProof}
-              className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
+              className={`min-h-[40px] px-4 py-2 text-xs font-medium rounded-lg transition-all cursor-pointer ${
                 availableProof
                   ? 'bg-zinc-700 text-white hover:bg-zinc-600'
                   : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
@@ -279,21 +355,81 @@ export function Game() {
         </div>
       )}
 
-      <Board
-        board={board}
-        gameState={gameState}
-        onCellClick={wrappedCellClick}
-        onCellRightClick={wrappedCellRightClick}
-        onChordClick={handleChordClick}
-        highlightedCells={highlightedCells}
-        proofTargetCell={showProofHint && currentProof ? [currentProof.row, currentProof.col] : undefined}
-        proofType={showProofHint && currentProof ? currentProof.type : undefined}
-        explodedCell={explodedCell}
-      />
+      {isTouchDevice && (
+        <div className="mb-3 w-full max-w-xl flex flex-col gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <button
+              onClick={() => setTouchActionMode('reveal')}
+              className={`min-h-[44px] px-4 rounded-lg text-sm font-medium ${
+                touchActionMode === 'reveal'
+                  ? 'bg-zinc-800 text-white'
+                  : 'bg-zinc-100 text-zinc-700'
+              }`}
+            >
+              Aufdecken
+            </button>
+            <button
+              onClick={() => setTouchActionMode('flag')}
+              className={`min-h-[44px] px-4 rounded-lg text-sm font-medium ${
+                touchActionMode === 'flag'
+                  ? 'bg-zinc-800 text-white'
+                  : 'bg-zinc-100 text-zinc-700'
+              }`}
+            >
+              Flagge
+            </button>
+            <button
+              onClick={() => setTouchActionMode('chord')}
+              className={`min-h-[44px] px-4 rounded-lg text-sm font-medium ${
+                touchActionMode === 'chord'
+                  ? 'bg-zinc-800 text-white'
+                  : 'bg-zinc-100 text-zinc-700'
+              }`}
+            >
+              Chord
+            </button>
+          </div>
+          <div className="flex items-center justify-center gap-2 text-xs text-zinc-500">
+            <span>Zoom</span>
+            <button
+              onClick={() => setBoardZoom((prev) => Math.max(0.7, Number((prev - 0.1).toFixed(2))))}
+              className="h-10 w-10 rounded-lg bg-zinc-100 text-zinc-700 text-lg"
+              aria-label="Zoom out board"
+            >
+              -
+            </button>
+            <span className="font-mono w-12 text-center">{Math.round(boardZoom * 100)}%</span>
+            <button
+              onClick={() => setBoardZoom((prev) => Math.min(1.6, Number((prev + 0.1).toFixed(2))))}
+              className="h-10 w-10 rounded-lg bg-zinc-100 text-zinc-700 text-lg"
+              aria-label="Zoom in board"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      )}
 
-      <div className="mt-6 text-sm text-zinc-500">
+      <div className="w-full overflow-auto rounded-xl border border-zinc-200 bg-zinc-50 p-2 sm:p-3">
+        <div className="min-w-max flex justify-center">
+          <Board
+            board={board}
+            gameState={gameState}
+            onCellClick={handlePrimaryCellAction}
+            onCellRightClick={wrappedCellRightClick}
+            onChordClick={wrappedChordClick}
+            cellSize={boardCellSize}
+            highlightedCells={highlightedCells}
+            proofTargetCell={showProofHint && currentProof ? [currentProof.row, currentProof.col] : undefined}
+            proofType={showProofHint && currentProof ? currentProof.type : undefined}
+            explodedCell={explodedCell}
+          />
+        </div>
+      </div>
+
+      <div className="mt-6 text-sm text-zinc-500 w-full">
         {/* Best times display */}
-        <div className="flex gap-4 justify-center">
+        <div className="flex gap-4 justify-center flex-wrap text-center">
           {bestTimes[difficulty] !== undefined && (
             <p>
               Bestzeit:{' '}
@@ -333,7 +469,11 @@ export function Game() {
       </div>
 
       <div className="mt-8 text-xs text-zinc-400 text-center max-w-md">
-        <p>Linksklick = aufdecken • Rechtsklick = Flagge • Doppelklick auf Zahlen = Chording</p>
+        <p>
+          {isTouchDevice
+            ? 'Action-Mode: Aufdecken / Flagge / Chord'
+            : 'Linksklick = aufdecken • Rechtsklick = Flagge • Doppelklick auf Zahlen = Chording'}
+        </p>
         <p className="mt-1">
           R = Neues Spiel • P = Proof-Hinweis
           {!tutorialActive && (

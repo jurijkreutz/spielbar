@@ -51,7 +51,7 @@ export function Header({
             <button
               key={d}
               onClick={() => onDifficultyChange(d)}
-              className={`px-3 py-1 text-sm font-medium rounded transition-colors cursor-pointer ${
+              className={`min-h-[40px] px-3 py-2 text-sm font-medium rounded transition-colors cursor-pointer ${
                 difficulty === d
                   ? 'bg-zinc-700 text-white'
                   : 'bg-zinc-200 text-zinc-700 hover:bg-zinc-300'
@@ -64,7 +64,7 @@ export function Header({
       </div>
 
       {difficulty === 'custom' && (
-        <div className="flex gap-4 justify-center items-center text-sm">
+        <div className="flex gap-3 justify-center items-center text-sm flex-wrap">
           <label className="flex items-center gap-1">
             <span className="text-zinc-600">Rows:</span>
             <input
@@ -122,7 +122,7 @@ export function Header({
         </div>
       )}
 
-      <div className="flex items-center justify-between bg-zinc-800 px-3 py-2 rounded-lg min-w-[200px]">
+      <div className="flex items-center justify-between bg-zinc-800 px-3 py-2 rounded-lg w-full max-w-md">
         <div
           className="font-mono text-2xl text-red-500 bg-black px-2 py-1 rounded tracking-wider"
           aria-label={`${minesRemaining} mines remaining`}
@@ -132,7 +132,7 @@ export function Header({
 
         <button
           onClick={onReset}
-          className="text-2xl hover:scale-110 transition-transform active:scale-95 cursor-pointer"
+          className="h-11 w-11 text-2xl hover:scale-110 transition-transform active:scale-95 cursor-pointer"
           aria-label="New game"
         >
           {getEmoji()}
@@ -148,4 +148,3 @@ export function Header({
     </div>
   );
 }
-

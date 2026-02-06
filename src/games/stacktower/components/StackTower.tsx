@@ -209,6 +209,7 @@ export function StackTower() {
   const [clouds, setClouds] = useState<Cloud[]>(() => generateClouds());
   const [birds, setBirds] = useState<Bird[]>([]);
   const [planes, setPlanes] = useState<Plane[]>([]);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
   const skyAnimationRef = useRef<number | null>(null);
   const lastSkyTimeRef = useRef<number>(0);
 
@@ -224,6 +225,25 @@ export function StackTower() {
       handleTutorialAction('drop');
     }
   }, [gameState.status, startRun, dropBlock, handleTutorialAction]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia('(pointer: coarse)');
+    const updateTouch = () => {
+      setIsTouchDevice(
+        mediaQuery.matches || navigator.maxTouchPoints > 0 || window.innerWidth < 768
+      );
+    };
+    updateTouch();
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', updateTouch);
+      return () => mediaQuery.removeEventListener('change', updateTouch);
+    }
+
+    mediaQuery.addListener(updateTouch);
+    return () => mediaQuery.removeListener(updateTouch);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -505,8 +525,8 @@ export function StackTower() {
   }, [gameState, clouds, birds, planes]);
 
   return (
-    <div className="flex flex-col items-center gap-6 p-4">
-      <div className="flex items-center gap-8 text-center">
+    <div className="flex flex-col items-center gap-6 p-2 sm:p-4 w-full">
+      <div className="flex items-center gap-6 sm:gap-8 text-center flex-wrap justify-center">
         <div>
           <div className="text-sm text-zinc-500 uppercase tracking-wide">Score</div>
           <div className="text-4xl font-bold text-zinc-900">{gameState.score}</div>
@@ -520,14 +540,14 @@ export function StackTower() {
 
       <div
         ref={containerRef}
-        className="relative cursor-pointer select-none"
+        className="relative cursor-pointer select-none w-full max-w-[400px] aspect-[2/3] max-h-[68vh] sm:max-h-none"
         onClick={handleInput}
       >
         <canvas
           ref={canvasRef}
           width={GAME_CONFIG.CANVAS_WIDTH}
           height={GAME_CONFIG.CANVAS_HEIGHT}
-          className="rounded-xl shadow-lg border border-zinc-200"
+          className="w-full h-full rounded-xl shadow-lg border border-zinc-200"
         />
 
         {gameState.status === 'idle' && (
@@ -542,7 +562,7 @@ export function StackTower() {
                     startRun();
                     handleTutorialAction('start');
                   }}
-                  className="px-8 py-3 bg-white text-zinc-900 font-semibold rounded-lg hover:bg-zinc-100 transition-colors"
+                  className="min-h-[44px] px-8 py-3 bg-white text-zinc-900 font-semibold rounded-lg hover:bg-zinc-100 transition-colors"
                 >
                   Klick zum Starten
                 </button>
@@ -571,7 +591,7 @@ export function StackTower() {
                     startRun();
                     handleTutorialAction('restart');
                   }}
-                  className="px-8 py-3 bg-white text-zinc-900 font-semibold rounded-lg hover:bg-zinc-100 transition-colors"
+                  className="min-h-[44px] px-8 py-3 bg-white text-zinc-900 font-semibold rounded-lg hover:bg-zinc-100 transition-colors"
                 >
                   Nochmal
                 </button>
@@ -596,7 +616,9 @@ export function StackTower() {
 
       <div className="text-center text-zinc-500 text-sm max-w-sm">
         {gameState.status === 'playing' ? (
-          <p>Klick oder <kbd className="px-2 py-0.5 bg-zinc-100 rounded text-xs">Space</kbd> zum Platzieren</p>
+          <p>
+            {isTouchDevice ? 'Tippen zum Platzieren' : <>Klick oder <kbd className="px-2 py-0.5 bg-zinc-100 rounded text-xs">Space</kbd> zum Platzieren</>}
+          </p>
         ) : (
           <p>
             Stapele die Blöcke präzise aufeinander.

@@ -10,18 +10,7 @@ import { DarkModeToggle } from '../hooks/useDarkMode';
 import { analytics, setDailyCompleted } from '@/lib/analytics';
 import { Loader } from '@/components/platform/Loader';
 import { TrackedLink } from '@/components/platform/TrackedLink';
-
-const PLAYER_ID_KEY = 'spielbar-player-id';
-
-function getPlayerId(): string {
-  if (typeof window === 'undefined') return '';
-  let id = localStorage.getItem(PLAYER_ID_KEY);
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem(PLAYER_ID_KEY, id);
-  }
-  return id;
-}
+import { getPlayerId } from '@/lib/playerId';
 
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
@@ -318,7 +307,7 @@ export function DailyGame() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 relative">
+    <div className="flex flex-col items-center gap-6 relative w-full">
       {/* Header */}
       <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -334,7 +323,7 @@ export function DailyGame() {
           </span>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
           {/* Timer */}
           <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
             <span>⏱️</span>
@@ -367,23 +356,27 @@ export function DailyGame() {
       )}
 
       {/* Board */}
-      <Board
-        board={board}
-        selectedCell={selectedCell}
-        onCellClick={selectCell}
-        gameOver={isComplete || alreadyCompleted}
-      />
+      <div className="w-full overflow-auto flex justify-center">
+        <Board
+          board={board}
+          selectedCell={selectedCell}
+          onCellClick={selectCell}
+          gameOver={isComplete || alreadyCompleted}
+        />
+      </div>
 
       {/* Number Pad - nur wenn nicht fertig */}
       {!alreadyCompleted && (
-        <NumberPad
-          onNumber={enterNumber}
-          onClear={clearCell}
-          onToggleNotes={() => setNotesMode(m => !m)}
-          notesMode={notesMode}
-          disabled={isComplete}
-          numberCounts={numberCounts}
-        />
+        <div className="w-full flex justify-center">
+          <NumberPad
+            onNumber={enterNumber}
+            onClear={clearCell}
+            onToggleNotes={() => setNotesMode(m => !m)}
+            notesMode={notesMode}
+            disabled={isComplete}
+            numberCounts={numberCounts}
+          />
+        </div>
       )}
 
       {/* Tastatur-Hinweise */}
@@ -418,13 +411,13 @@ export function DailyGame() {
               <TrackedLink
                 href="/"
                 tracking={{ type: 'game_exit_to_overview', from: 'sudoku-daily' }}
-                className="px-6 py-2.5 text-sm font-medium text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-700 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors text-center"
+                className="min-h-[44px] px-6 py-2.5 text-sm font-medium text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-700 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-600 transition-colors text-center"
               >
                 Alle Spiele
               </TrackedLink>
               <a
                 href="/games/minesweeper/daily"
-                className="px-6 py-2.5 text-sm font-medium text-amber-700 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors"
+                className="min-h-[44px] px-6 py-2.5 text-sm font-medium text-amber-700 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors"
               >
                 Daily Minesweeper spielen
               </a>

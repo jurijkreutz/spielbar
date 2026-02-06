@@ -8,19 +8,8 @@ import { analytics, setDailyCompleted } from '@/lib/analytics';
 import { Loader } from '@/components/platform/Loader';
 import { InfoTooltip } from '@/components/platform/InfoTooltip';
 import { TrackedLink } from '@/components/platform/TrackedLink';
+import { getPlayerId } from '@/lib/playerId';
 import type { CellState, GameState } from '../types/minesweeper';
-
-const PLAYER_ID_KEY = 'spielbar-player-id';
-
-function getPlayerId(): string {
-  if (typeof window === 'undefined') return '';
-  let id = localStorage.getItem(PLAYER_ID_KEY);
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem(PLAYER_ID_KEY, id);
-  }
-  return id;
-}
 
 function getNeighbors(row: number, col: number, rows: number, cols: number): [number, number][] {
   const neighbors: [number, number][] = [];
@@ -54,7 +43,12 @@ type DailyBoardData = {
   } | null;
 };
 
+type TouchActionMode = 'reveal' | 'flag' | 'chord';
+
 export function DailyGame() {
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [touchActionMode, setTouchActionMode] = useState<TouchActionMode>('reveal');
+  const [boardZoom, setBoardZoom] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dailyData, setDailyData] = useState<DailyBoardData | null>(null);
@@ -71,6 +65,26 @@ export function DailyGame() {
   const [highlightedCells, setHighlightedCells] = useState<Set<string>>(new Set());
 
   const playerId = typeof window !== 'undefined' ? getPlayerId() : '';
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const mediaQuery = window.matchMedia('(pointer: coarse)');
+    const updateTouch = () => {
+      setIsTouchDevice(
+        mediaQuery.matches || navigator.maxTouchPoints > 0 || window.innerWidth < 768
+      );
+    };
+    updateTouch();
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', updateTouch);
+      return () => mediaQuery.removeEventListener('change', updateTouch);
+    }
+
+    mediaQuery.addListener(updateTouch);
+    return () => mediaQuery.removeListener(updateTouch);
+  }, []);
 
   // Load daily board
   useEffect(() => {
@@ -127,6 +141,34 @@ export function DailyGame() {
     if (!board || gameState !== 'playing') return null;
     return findProof(board);
   }, [board, gameState]);
+
+  const baseCellSize = useMemo(() => {
+    if (!dailyData || !isTouchDevice) return 28;
+    if (dailyData.cols >= 28) return 24;
+    if (dailyData.cols >= 20) return 26;
+    return 28;
+  }, [dailyData, isTouchDevice]);
+
+  useEffect(() => {
+    if (!isTouchDevice) {
+      setBoardZoom(1);
+      return;
+    }
+
+    if (!dailyData) return;
+    if (dailyData.cols >= 28) {
+      setBoardZoom(0.82);
+    } else if (dailyData.cols >= 20) {
+      setBoardZoom(0.9);
+    } else {
+      setBoardZoom(1);
+    }
+  }, [dailyData, isTouchDevice]);
+
+  const boardCellSize = useMemo(
+    () => Math.max(22, Math.round(baseCellSize * boardZoom)),
+    [baseCellSize, boardZoom]
+  );
 
   // Calculate mines remaining
   const minesRemaining = useMemo(() => {
@@ -334,6 +376,45 @@ export function DailyGame() {
     }
   }, [availableProof, alreadyCompleted]);
 
+  const clearProofOverlay = useCallback(() => {
+    setShowProofHint(false);
+    setHighlightedCells(new Set());
+  }, []);
+
+  const wrappedCellClick = useCallback((row: number, col: number) => {
+    handleCellClick(row, col);
+    clearProofOverlay();
+  }, [handleCellClick, clearProofOverlay]);
+
+  const wrappedCellRightClick = useCallback((row: number, col: number) => {
+    handleCellRightClick(row, col);
+    clearProofOverlay();
+  }, [handleCellRightClick, clearProofOverlay]);
+
+  const wrappedChordClick = useCallback((row: number, col: number) => {
+    handleChordClick(row, col);
+    clearProofOverlay();
+  }, [handleChordClick, clearProofOverlay]);
+
+  const handlePrimaryCellAction = useCallback((row: number, col: number) => {
+    if (!isTouchDevice) {
+      wrappedCellClick(row, col);
+      return;
+    }
+
+    if (touchActionMode === 'flag') {
+      wrappedCellRightClick(row, col);
+      return;
+    }
+
+    if (touchActionMode === 'chord') {
+      wrappedChordClick(row, col);
+      return;
+    }
+
+    wrappedCellClick(row, col);
+  }, [isTouchDevice, touchActionMode, wrappedCellClick, wrappedCellRightClick, wrappedChordClick]);
+
   // Format time
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -373,9 +454,9 @@ export function DailyGame() {
     : null;
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center w-full">
       {/* Daily Header */}
-      <div className="mb-6 text-center">
+      <div className="mb-6 text-center px-2">
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-medium mb-2">
           📅 Heute
         </div>
@@ -402,7 +483,7 @@ export function DailyGame() {
       </div>
 
       {/* Game Stats Bar */}
-      <div className="flex items-center gap-6 mb-4 px-4 py-2 bg-zinc-100 rounded-lg">
+      <div className="flex items-center justify-center gap-4 sm:gap-6 mb-4 px-4 py-2 bg-zinc-100 rounded-lg flex-wrap w-full max-w-md">
         <div className="text-center">
           <p className="text-xs text-zinc-500">Minen</p>
           <p className="font-mono font-bold text-zinc-900">{minesRemaining}</p>
@@ -431,7 +512,7 @@ export function DailyGame() {
             <button
               onClick={handleProofRequest}
               disabled={!availableProof}
-              className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
+              className={`min-h-[40px] px-4 py-2 text-xs font-medium rounded-lg transition-all cursor-pointer ${
                 availableProof
                   ? 'bg-zinc-700 text-white hover:bg-zinc-600'
                   : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
@@ -458,20 +539,80 @@ export function DailyGame() {
         </div>
       )}
 
+      {isTouchDevice && !alreadyCompleted && (
+        <div className="mb-3 w-full max-w-xl flex flex-col gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <button
+              onClick={() => setTouchActionMode('reveal')}
+              className={`min-h-[44px] px-4 rounded-lg text-sm font-medium ${
+                touchActionMode === 'reveal'
+                  ? 'bg-zinc-800 text-white'
+                  : 'bg-zinc-100 text-zinc-700'
+              }`}
+            >
+              Aufdecken
+            </button>
+            <button
+              onClick={() => setTouchActionMode('flag')}
+              className={`min-h-[44px] px-4 rounded-lg text-sm font-medium ${
+                touchActionMode === 'flag'
+                  ? 'bg-zinc-800 text-white'
+                  : 'bg-zinc-100 text-zinc-700'
+              }`}
+            >
+              Flagge
+            </button>
+            <button
+              onClick={() => setTouchActionMode('chord')}
+              className={`min-h-[44px] px-4 rounded-lg text-sm font-medium ${
+                touchActionMode === 'chord'
+                  ? 'bg-zinc-800 text-white'
+                  : 'bg-zinc-100 text-zinc-700'
+              }`}
+            >
+              Chord
+            </button>
+          </div>
+          <div className="flex items-center justify-center gap-2 text-xs text-zinc-500">
+            <span>Zoom</span>
+            <button
+              onClick={() => setBoardZoom((prev) => Math.max(0.7, Number((prev - 0.1).toFixed(2))))}
+              className="h-10 w-10 rounded-lg bg-zinc-100 text-zinc-700 text-lg"
+              aria-label="Zoom out board"
+            >
+              -
+            </button>
+            <span className="font-mono w-12 text-center">{Math.round(boardZoom * 100)}%</span>
+            <button
+              onClick={() => setBoardZoom((prev) => Math.min(1.6, Number((prev + 0.1).toFixed(2))))}
+              className="h-10 w-10 rounded-lg bg-zinc-100 text-zinc-700 text-lg"
+              aria-label="Zoom in board"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Board */}
-      <Board
-        board={board}
-        gameState={gameState}
-        onCellClick={handleCellClick}
-        onCellRightClick={handleCellRightClick}
-        onChordClick={handleChordClick}
-        highlightedCells={highlightedCells}
-        proofTargetCell={showProofHint && currentProof ? [currentProof.row, currentProof.col] : undefined}
-      />
+      <div className="w-full overflow-auto rounded-xl border border-zinc-200 bg-zinc-50 p-2 sm:p-3">
+        <div className="min-w-max flex justify-center">
+          <Board
+            board={board}
+            gameState={gameState}
+            onCellClick={handlePrimaryCellAction}
+            onCellRightClick={wrappedCellRightClick}
+            onChordClick={wrappedChordClick}
+            cellSize={boardCellSize}
+            highlightedCells={highlightedCells}
+            proofTargetCell={showProofHint && currentProof ? [currentProof.row, currentProof.col] : undefined}
+          />
+        </div>
+      </div>
 
       {/* Result (Ticket 4.1 - Konsistente Endstates) */}
       {(gameState === 'won' || gameState === 'lost') && (
-        <div className={`mt-6 p-6 rounded-xl text-center ${
+        <div className={`mt-6 p-6 rounded-xl text-center w-full ${
           gameState === 'won' ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'
         }`}>
           <p className={`text-lg font-bold ${gameState === 'won' ? 'text-emerald-700' : 'text-red-700'}`}>
@@ -522,7 +663,9 @@ export function DailyGame() {
       <div className="mt-6 text-xs text-zinc-400 text-center max-w-md">
         <p>
           {gameState === 'idle' && !alreadyCompleted && 'Klicke auf ein Feld, um zu starten.'}
-          {gameState === 'playing' && 'Linksklick = aufdecken • Rechtsklick = Flagge'}
+          {gameState === 'playing' && (isTouchDevice
+            ? 'Action-Mode: Aufdecken / Flagge / Chord'
+            : 'Linksklick = aufdecken • Rechtsklick = Flagge')}
         </p>
         {!alreadyCompleted && gameState !== 'won' && gameState !== 'lost' && (
           <p className="mt-1 text-amber-600">

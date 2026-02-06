@@ -2,20 +2,7 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-
-function generateToken(): string {
-  return crypto.randomUUID();
-}
-
-function getSessionToken(): string {
-  const key = 'spielbar_hb_token';
-  let token = sessionStorage.getItem(key);
-  if (!token) {
-    token = generateToken();
-    sessionStorage.setItem(key, token);
-  }
-  return token;
-}
+import { getSessionToken } from '@/lib/sessionToken';
 
 export default function Heartbeat() {
   const pathname = usePathname();

@@ -170,6 +170,32 @@ describe('getDailyStatus', () => {
   });
 });
 
+describe('Storage Fail-Safe', () => {
+  it('wirft nicht bei setLastPlayed wenn Storage blockiert ist', () => {
+    (localStorage.setItem as jest.Mock).mockImplementation(() => {
+      throw new DOMException('blocked', 'SecurityError');
+    });
+
+    expect(() => setLastPlayed({
+      slug: 'snake',
+      name: 'Snake',
+      href: '/games/snake',
+      mode: 'free',
+      playedAt: Date.now(),
+    })).not.toThrow();
+  });
+
+  it('liefert null/false Defaults wenn Lesen fehlschlägt', () => {
+    (localStorage.getItem as jest.Mock).mockImplementation(() => {
+      throw new DOMException('quota', 'QuotaExceededError');
+    });
+
+    expect(getLastPlayed()).toBeNull();
+    expect(getDailyStatus()).toEqual({});
+    expect(isDailyCompleted('minesweeper')).toBe(false);
+  });
+});
+
 describe('Event Dispatch', () => {
   it('feuert spielbar_analytics Event bei trackLandingView', () => {
     const handler = jest.fn();

@@ -3,13 +3,13 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { GameState, Block, FallingPiece, HighScores } from '../types/stacktower';
 import { GAME_CONFIG, BLOCK_COLORS } from '../types/stacktower';
+import { readStorage, writeStorage } from '@/lib/safeStorage';
 
 const STORAGE_KEY = 'stacktower-highscores';
 
 function loadHighScores(): HighScores {
-  if (typeof window === 'undefined') return { best: 0, lastScore: 0 };
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = readStorage('local', STORAGE_KEY);
     return stored ? JSON.parse(stored) : { best: 0, lastScore: 0 };
   } catch {
     return { best: 0, lastScore: 0 };
@@ -17,9 +17,8 @@ function loadHighScores(): HighScores {
 }
 
 function saveHighScores(scores: HighScores) {
-  if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(scores));
+    writeStorage('local', STORAGE_KEY, JSON.stringify(scores));
   } catch {
     // Ignore storage errors
   }
@@ -295,4 +294,3 @@ export function useStackTower() {
     dropBlock,
   };
 }
-

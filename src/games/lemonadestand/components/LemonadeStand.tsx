@@ -52,6 +52,8 @@ export function LemonadeStand() {
     'product' | 'stand' | 'ambiance' | 'all'
   >('all');
   const [achievementsOpen, setAchievementsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [upgradesModalOpen, setUpgradesModalOpen] = useState(false);
   const hasTrackedStart = useRef(false);
 
   useEffect(() => {
@@ -65,12 +67,56 @@ export function LemonadeStand() {
   }, [isLoaded]);
 
   const gameAreaRef = useRef<HTMLDivElement>(null);
+  const [sceneScale, setSceneScale] = useState(1);
 
   // Combined reset function for achievements and game
   const handleCompleteReset = () => {
     resetAchievements();
     resetGame();
   };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const updateMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    updateMobile();
+
+    window.addEventListener('resize', updateMobile);
+    return () => window.removeEventListener('resize', updateMobile);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile) {
+      setUpgradesModalOpen(false);
+    }
+  }, [isMobile]);
+
+  useEffect(() => {
+    const element = gameAreaRef.current;
+    if (!element) return;
+
+    const updateScale = () => {
+      const width = element.clientWidth;
+      const height = element.clientHeight;
+      const widthScale = width / 960;
+      const heightScale = height / 500;
+      const nextScale = Math.max(0.56, Math.min(1, Math.min(widthScale, heightScale)));
+      setSceneScale(nextScale);
+    };
+
+    updateScale();
+
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', updateScale);
+      return () => window.removeEventListener('resize', updateScale);
+    }
+
+    const observer = new ResizeObserver(updateScale);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   // Check achievements whenever game state changes
   useEffect(() => {
@@ -117,6 +163,12 @@ export function LemonadeStand() {
   const handleUpgradePurchase = (upgradeId: string) => {
     purchaseUpgrade(upgradeId);
     handleTutorialAction('upgrade');
+  };
+
+  const handleResetRequest = () => {
+    if (confirm('Wirklich zurücksetzen? Alle Fortschritte gehen verloren!')) {
+      resetGame();
+    }
   };
 
   const filteredUpgrades =
@@ -215,7 +267,7 @@ export function LemonadeStand() {
                   setAchievementsOpen(true);
                   handleTutorialAction('achievements');
                 }}
-                className="flex-shrink-0 bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-white font-bold py-2 px-4 rounded-lg shadow transition flex items-center gap-2"
+                className="min-h-[44px] flex-shrink-0 bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-500 hover:to-yellow-500 text-white font-bold py-2 px-4 rounded-lg shadow transition flex items-center gap-2"
                 title="Erfolge & Records"
               >
                 <span className="text-xl">🏆</span>
@@ -229,7 +281,7 @@ export function LemonadeStand() {
             ref={gameAreaRef}
             onClick={handleGameAreaClick}
             className="relative bg-gradient-to-b from-sky-300 to-green-300 rounded-lg shadow-lg overflow-hidden cursor-pointer select-none"
-            style={{ height: '500px' }}
+            style={{ height: 'clamp(320px, 55vh, 500px)' }}
           >
             {/* Background - Sky */}
             <div
@@ -266,6 +318,13 @@ export function LemonadeStand() {
               }}
             />
 
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                transform: `scale(${sceneScale})`,
+                transformOrigin: 'bottom center',
+              }}
+            >
             {/* Lemonade Stand - Changes based on upgrades */}
             {(() => {
               const standLevel = getUpgradeLevel('bigger-stand');
@@ -472,7 +531,7 @@ export function LemonadeStand() {
                 key={customer.id}
                 className="absolute bottom-8 transition-all duration-300"
                 style={{
-                  left: `${customer.x}px`,
+                  left: `${customer.x + (isMobile ? -24 : 0)}px`,
                   opacity: customer.opacity,
                 }}
               >
@@ -480,10 +539,11 @@ export function LemonadeStand() {
                   src={`/games/lemonadestand/customer_${(index % 6) + 1}.png`}
                   alt="Customer"
                   className="drop-shadow-lg"
-                  style={{ height: '240px', width: 'auto' }}
+                  style={{ height: isMobile ? '190px' : '240px', width: 'auto' }}
                 />
               </div>
             ))}
+            </div>
 
             {/* Floating Money */}
             {floatingMoney.map((money) => (
@@ -503,11 +563,11 @@ export function LemonadeStand() {
 
             {/* Click Hint */}
             <div
-              className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm bg-black/50 px-4 py-2 rounded-lg"
+              className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-xs sm:text-sm bg-black/50 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg"
               style={{ zIndex: 100 }}
             >
-               🖱️ Klicke, um Limonade zu verkaufen!
-             </div>
+              Tippen/Klicken, um Limonade zu verkaufen!
+            </div>
           </div>
 
           {/* Stats */}
@@ -535,13 +595,151 @@ export function LemonadeStand() {
         </div>
       </div>
 
+      {isMobile && (
+        <button
+          onClick={() => setUpgradesModalOpen(true)}
+          className="fixed bottom-5 right-4 z-[12000] min-h-[44px] px-4 py-2 rounded-full bg-yellow-500 text-white font-bold shadow-xl md:hidden"
+        >
+          🏪 Upgrades
+        </button>
+      )}
+
+      {isMobile && upgradesModalOpen && (
+        <div className="fixed inset-0 z-[13000] md:hidden">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setUpgradesModalOpen(false)}
+          />
+          <div className="absolute left-1/2 top-1/2 w-[min(94vw,420px)] max-h-[88vh] -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h2 className="text-xl font-bold text-yellow-600">🏪 Upgrades</h2>
+              <button
+                onClick={() => setUpgradesModalOpen(false)}
+                className="min-h-[40px] min-w-[40px] rounded-lg bg-zinc-100 text-zinc-700"
+                aria-label="Upgrades schließen"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-4 border-b">
+              <div className="flex gap-2 flex-wrap">
+                {(
+                  [
+                    { id: 'all', label: 'Alle', emoji: '📦' },
+                    { id: 'product', label: 'Produkt', emoji: '🍋' },
+                    { id: 'stand', label: 'Stand', emoji: '🏪' },
+                    { id: 'ambiance', label: 'Ambiente', emoji: '✨' },
+                  ] as const
+                ).map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`min-h-[40px] flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition ${
+                      selectedCategory === cat.id
+                        ? 'bg-yellow-500 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    {cat.emoji} {cat.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-4 space-y-3 overflow-y-auto">
+              {filteredUpgrades.map((upgrade) => {
+                const level = getUpgradeLevel(upgrade.id);
+                const cost = getUpgradeCost(upgrade.id, level);
+                const affordable = canAfford(upgrade.id);
+                const maxed = level >= upgrade.maxLevel;
+
+                return (
+                  <div
+                    key={upgrade.id}
+                    className={`p-4 rounded-lg border-2 transition ${
+                      maxed
+                        ? 'bg-gray-100 border-gray-300'
+                        : affordable
+                          ? 'bg-green-50 border-green-300 hover:bg-green-100'
+                          : 'bg-white border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="text-4xl flex-shrink-0">
+                        {upgrade.icon.startsWith('/') || upgrade.icon.startsWith('http') ? (
+                          <img
+                            src={upgrade.icon}
+                            alt={upgrade.name}
+                            className="w-12 h-12 object-contain"
+                          />
+                        ) : (
+                          <span>{upgrade.icon}</span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-bold text-lg">{upgrade.name}</h3>
+                          <div className="text-xs text-gray-500">
+                            Level {level}/{upgrade.maxLevel}
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">{upgrade.description}</p>
+                        <div className="text-sm text-blue-600 mb-2">
+                          {upgrade.effect.type === 'clickValue' && (
+                            <>+{upgrade.effect.value} pro Klick</>
+                          )}
+                          {upgrade.effect.type === 'idleIncome' && (
+                            <>+{upgrade.effect.value}/s passiv</>
+                          )}
+                          {upgrade.effect.type === 'multiplier' && (
+                            <>+{(upgrade.effect.value * 100).toFixed(0)}% Multiplikator</>
+                          )}
+                        </div>
+                        {!maxed && (
+                          <button
+                            onClick={() => handleUpgradePurchase(upgrade.id)}
+                            disabled={!affordable}
+                            className={`w-full min-h-[44px] py-2 px-4 rounded-lg font-bold transition ${
+                              affordable
+                                ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            }`}
+                          >
+                            Kaufen: ${formatMoney(cost)}
+                          </button>
+                        )}
+                        {maxed && (
+                          <div className="text-center py-2 text-green-600 font-bold">
+                            ✓ Maximum erreicht
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="p-4 border-t bg-gray-50">
+              <button
+                onClick={handleResetRequest}
+                className="w-full min-h-[44px] bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition"
+              >
+                🔄 Spiel zurücksetzen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Upgrades Panel */}
-      <div className="w-full lg:w-96 bg-white shadow-lg overflow-y-auto">
+      <div className="hidden md:block w-full lg:w-96 bg-white shadow-lg overflow-y-auto">
         <div className="p-4 border-b sticky top-0 bg-white z-10">
           <h2 className="text-2xl font-bold mb-4 text-yellow-600">🏪 Upgrades</h2>
 
           {/* Category Filter */}
-          <div className="flex gap-2 mb-4">
+          <div className="flex gap-2 mb-4 flex-wrap">
             {(
               [
                 { id: 'all', label: 'Alle', emoji: '📦' },
@@ -553,7 +751,7 @@ export function LemonadeStand() {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition ${
+                className={`min-h-[40px] flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition ${
                   selectedCategory === cat.id
                     ? 'bg-yellow-500 text-white'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -618,7 +816,7 @@ export function LemonadeStand() {
                       <button
                         onClick={() => handleUpgradePurchase(upgrade.id)}
                         disabled={!affordable}
-                        className={`w-full py-2 px-4 rounded-lg font-bold transition ${
+                        className={`w-full min-h-[44px] py-2 px-4 rounded-lg font-bold transition ${
                           affordable
                             ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -642,12 +840,8 @@ export function LemonadeStand() {
         {/* Reset Button */}
         <div className="p-4 border-t bg-gray-50">
           <button
-            onClick={() => {
-              if (confirm('Wirklich zurücksetzen? Alle Fortschritte gehen verloren!')) {
-                resetGame();
-              }
-            }}
-            className="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition"
+            onClick={handleResetRequest}
+            className="w-full min-h-[44px] bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition"
           >
             🔄 Spiel zurücksetzen
           </button>

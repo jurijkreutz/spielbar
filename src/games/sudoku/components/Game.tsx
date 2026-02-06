@@ -10,15 +10,15 @@ import { Header } from './Header';
 import { analytics } from '@/lib/analytics';
 import { Loader } from '@/components/platform/Loader';
 import { useTutorial, TutorialOverlay, TutorialButton } from './Tutorial';
+import { readStorage, writeStorage } from '@/lib/safeStorage';
 
 const BEST_TIMES_KEY = 'sudoku-best-times';
 
 type BestTimes = Partial<Record<Difficulty, number>>;
 
 function loadBestTimes(): BestTimes {
-  if (typeof window === 'undefined') return {};
   try {
-    const stored = localStorage.getItem(BEST_TIMES_KEY);
+    const stored = readStorage('local', BEST_TIMES_KEY);
     return stored ? JSON.parse(stored) : {};
   } catch {
     return {};
@@ -26,9 +26,8 @@ function loadBestTimes(): BestTimes {
 }
 
 function saveBestTimes(times: BestTimes) {
-  if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(BEST_TIMES_KEY, JSON.stringify(times));
+    writeStorage('local', BEST_TIMES_KEY, JSON.stringify(times));
   } catch {
     // Ignore storage errors
   }
@@ -294,7 +293,7 @@ export function Game() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 relative">
+    <div className="flex flex-col items-center gap-6 relative w-full">
       <Header
         difficulty={difficulty}
         onDifficultyChange={handleDifficultyChange}
@@ -304,21 +303,25 @@ export function Game() {
         onNewGame={handleNewGame}
       />
 
-      <Board
-        board={board}
-        selectedCell={selectedCell}
-        onCellClick={selectCell}
-        gameOver={isComplete}
-      />
+      <div className="w-full overflow-auto flex justify-center">
+        <Board
+          board={board}
+          selectedCell={selectedCell}
+          onCellClick={selectCell}
+          gameOver={isComplete}
+        />
+      </div>
 
-      <NumberPad
-        onNumber={enterNumber}
-        onClear={clearCell}
-        onToggleNotes={toggleNotesMode}
-        notesMode={notesMode}
-        disabled={isComplete}
-        numberCounts={numberCounts}
-      />
+      <div className="w-full flex justify-center">
+        <NumberPad
+          onNumber={enterNumber}
+          onClear={clearCell}
+          onToggleNotes={toggleNotesMode}
+          notesMode={notesMode}
+          disabled={isComplete}
+          numberCounts={numberCounts}
+        />
+      </div>
 
       {/* Tastatur-Hinweise */}
       <div className="mt-6 text-xs text-zinc-400 dark:text-zinc-500 text-center max-w-md">

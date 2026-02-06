@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { readStorage, writeStorage } from '@/lib/safeStorage';
 import {
   AchievementsState,
   Achievement,
@@ -25,12 +26,8 @@ function getInitialState(): AchievementsState {
 }
 
 function loadAchievements(): AchievementsState {
-  if (typeof window === 'undefined') {
-    return getInitialState();
-  }
-
   try {
-    const saved = localStorage.getItem(ACHIEVEMENTS_STORAGE_KEY);
+    const saved = readStorage('local', ACHIEVEMENTS_STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
       return {
@@ -44,19 +41,18 @@ function loadAchievements(): AchievementsState {
         },
       };
     }
-  } catch (e) {
-    console.error('Failed to load achievements:', e);
+  } catch {
+    // Ignore invalid/missing storage
   }
 
   return getInitialState();
 }
 
 function saveAchievements(state: AchievementsState) {
-  if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(ACHIEVEMENTS_STORAGE_KEY, JSON.stringify(state));
-  } catch (e) {
-    console.error('Failed to save achievements:', e);
+    writeStorage('local', ACHIEVEMENTS_STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // Ignore storage errors
   }
 }
 
@@ -213,4 +209,3 @@ export function useAchievements() {
 export function getAchievementDef(id: string) {
   return ACHIEVEMENTS.find((a) => a.id === id);
 }
-

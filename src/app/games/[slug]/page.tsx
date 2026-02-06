@@ -5,6 +5,7 @@ import { MinesweeperGame, SudokuGame, StackTower, Snake, LemonadeStand, BrickBre
 import { GAME_DESCRIPTIONS } from '@/lib/gameDescriptions';
 import { TrackedLink } from '@/components/platform/TrackedLink';
 import SiteFooter from '@/components/platform/SiteFooter';
+import { StorageNotice } from '@/components/platform/StorageNotice';
 
 // Mapping von gameComponent zu tatsächlichen Komponenten
 const gameComponents: Record<string, React.ComponentType> = {
@@ -62,7 +63,7 @@ export default async function GamePage({ params }: GamePageProps) {
       {/* Header */}
       <header className="bg-white border-b border-zinc-200">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <TrackedLink
               href="/"
               tracking={{ type: 'game_exit_to_overview', from: game.slug }}
@@ -106,7 +107,7 @@ export default async function GamePage({ params }: GamePageProps) {
           <div className="max-w-6xl mx-auto px-4 py-4">
             <Link
               href="/games/minesweeper/daily"
-              className="flex items-center justify-between group"
+              className="flex items-center justify-between gap-3 flex-wrap group"
             >
               <div className="flex items-center gap-3">
                 <span className="px-2 py-1 bg-amber-200 text-amber-800 text-xs font-bold rounded-full">
@@ -135,7 +136,7 @@ export default async function GamePage({ params }: GamePageProps) {
           <div className="max-w-6xl mx-auto px-4 py-4">
             <Link
               href="/games/sudoku/daily"
-              className="flex items-center justify-between group"
+              className="flex items-center justify-between gap-3 flex-wrap group"
             >
               <div className="flex items-center gap-3">
                 <span className="px-2 py-1 bg-blue-200 text-blue-800 text-xs font-bold rounded-full">
@@ -161,8 +162,9 @@ export default async function GamePage({ params }: GamePageProps) {
       {/* Game Area */}
       <section className="py-8">
         <div className="max-w-6xl mx-auto px-4">
+          <StorageNotice />
           {GameComponent ? (
-            <div className="bg-white rounded-2xl border border-zinc-200 p-6 shadow-sm">
+            <div className="bg-white rounded-2xl border border-zinc-200 p-3 sm:p-6 shadow-sm">
               <GameComponent />
             </div>
           ) : (

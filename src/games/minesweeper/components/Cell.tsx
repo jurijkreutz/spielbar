@@ -20,6 +20,7 @@ type CellProps = {
   onClick: () => void;
   onRightClick: () => void;
   onMiddleClick: () => void;
+  size?: number;
   gameOver: boolean;
   isHighlighted?: boolean;
   isProofTarget?: boolean;
@@ -33,6 +34,7 @@ export const Cell = memo(function Cell({
   onClick,
   onRightClick,
   onMiddleClick,
+  size = 28,
   gameOver,
   isHighlighted = false,
   isProofTarget = false,
@@ -86,7 +88,13 @@ export const Cell = memo(function Cell({
   };
 
   const baseClasses =
-    'w-7 h-7 flex items-center justify-center text-sm font-bold select-none transition-all duration-100';
+    'flex items-center justify-center font-bold select-none transition-all duration-100';
+  const cellStyle = {
+    width: `${size}px`,
+    height: `${size}px`,
+    fontSize: `${Math.max(12, Math.round(size * 0.5))}px`,
+    lineHeight: 1,
+  } as const;
 
   // Proof mode highlighting
   const getProofClasses = () => {
@@ -112,6 +120,7 @@ export const Cell = memo(function Cell({
         onDoubleClick={handleDoubleClick}
         disabled={gameOver}
         aria-label={cell.isFlagged ? 'Flagged cell' : 'Hidden cell'}
+        style={cellStyle}
       >
         {cell.isFlagged && (
           <span
@@ -131,8 +140,9 @@ export const Cell = memo(function Cell({
       <div
         className={`${baseClasses} ${isExploded ? 'cell-mine-exploded mine-explode' : 'cell-mine'} ${getProofClasses()}`}
         aria-label="Mine"
+        style={cellStyle}
       >
-        <span className="text-lg" aria-hidden="true">💣</span>
+        <span style={{ fontSize: `${Math.max(14, Math.round(size * 0.62))}px` }} aria-hidden="true">💣</span>
       </div>
     );
   }
@@ -143,10 +153,11 @@ export const Cell = memo(function Cell({
       className={`${baseClasses} cell-revealed cursor-default ${
         cell.adjacentMines > 0 ? `${NUMBER_COLORS[cell.adjacentMines]} cell-number` : ''
       } ${getProofClasses()} ${showRevealPulse ? 'cell-reveal-pulse' : ''}`}
-      onClick={handleDoubleClick}
+      onClick={handleClick}
       onContextMenu={handleContextMenu}
       onMouseDown={handleMouseDown}
       onDoubleClick={handleDoubleClick}
+      style={cellStyle}
       aria-label={
         cell.adjacentMines > 0
           ? `${cell.adjacentMines} adjacent mines`

@@ -20,9 +20,9 @@ export function NumberPad({
   numberCounts,
 }: NumberPadProps) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 w-full max-w-md">
       {/* Zahlen 1-9 */}
-      <div className="grid grid-cols-9 gap-1 sm:gap-2">
+      <div className="grid grid-cols-3 sm:grid-cols-9 gap-2">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => {
           const count = numberCounts[num] || 0;
           const isComplete = count >= 9;
@@ -31,7 +31,7 @@ export function NumberPad({
             <button
               key={num}
               className={`
-                relative w-8 h-10 sm:w-10 sm:h-12
+                relative w-full min-h-[44px] sm:w-10 sm:h-12
                 flex items-center justify-center
                 text-lg sm:text-xl font-semibold
                 rounded-lg
@@ -62,11 +62,11 @@ export function NumberPad({
       </div>
 
       {/* Aktionen */}
-      <div className="flex gap-2 justify-center items-center">
+      <div className="flex gap-2 justify-center items-center flex-wrap">
         <div className="flex items-center gap-2">
           <button
             className={`
-              px-4 py-2 rounded-lg text-sm font-medium
+              min-h-[44px] px-4 py-2 rounded-lg text-sm font-medium
               transition-all duration-100
               ${notesMode
                 ? 'bg-blue-500 text-white'
@@ -90,7 +90,7 @@ export function NumberPad({
 
         <button
           className={`
-            px-4 py-2 rounded-lg text-sm font-medium
+            min-h-[44px] px-4 py-2 rounded-lg text-sm font-medium
             bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300
             hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400
             border border-zinc-200 dark:border-zinc-600

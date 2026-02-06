@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { useSnake } from '../hooks/useSnake';
 import { GAME_CONFIG, COLORS, SPECIAL_ITEMS } from '../types/snake';
 import type { SnakeSegment, Particle, ActiveEffect } from '../types/snake';
@@ -72,6 +72,7 @@ export function Snake() {
     changeDirection,
     togglePause,
   } = useSnake();
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   const startRun = useCallback((restart: boolean) => {
     if (restart) {
@@ -100,11 +101,28 @@ export function Snake() {
   const animationRef = useRef<number | null>(null);
   const drawFnRef = useRef<((timestamp: number) => void) | null>(null);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia('(pointer: coarse)');
+    const updateTouch = () => {
+      setIsTouchDevice(
+        mediaQuery.matches || navigator.maxTouchPoints > 0 || window.innerWidth < 768
+      );
+    };
+    updateTouch();
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', updateTouch);
+      return () => mediaQuery.removeEventListener('change', updateTouch);
+    }
+
+    mediaQuery.addListener(updateTouch);
+    return () => mediaQuery.removeListener(updateTouch);
+  }, []);
+
   // Handle keyboard input
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      console.log('Key pressed:', e.key, 'Status:', gameState.status);
-
       // R key for restart (Ticket 4.2)
       if ((e.key === 'r' || e.key === 'R') && gameState.status === 'gameover') {
         e.preventDefault();
@@ -133,28 +151,24 @@ export function Snake() {
         case 'w':
         case 'W':
           e.preventDefault();
-          console.log('Changing direction to UP');
           handleDirectionChange('up');
           break;
         case 'ArrowDown':
         case 's':
         case 'S':
           e.preventDefault();
-          console.log('Changing direction to DOWN');
           handleDirectionChange('down');
           break;
         case 'ArrowLeft':
         case 'a':
         case 'A':
           e.preventDefault();
-          console.log('Changing direction to LEFT');
           handleDirectionChange('left');
           break;
         case 'ArrowRight':
         case 'd':
         case 'D':
           e.preventDefault();
-          console.log('Changing direction to RIGHT');
           handleDirectionChange('right');
           break;
       }
@@ -629,7 +643,7 @@ export function Snake() {
   }, [gameState.speed]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a0f] p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a0f] p-2 sm:p-4">
       {/* Score Display */}
       <div className="mb-4 text-center">
         <div className="text-4xl font-bold text-white mb-1">{gameState.score}</div>
@@ -641,14 +655,13 @@ export function Snake() {
       {/* Game Container */}
       <div
         ref={containerRef}
-        className="relative touch-none select-none"
-        style={{ width: GAME_CONFIG.CANVAS_WIDTH, height: GAME_CONFIG.CANVAS_HEIGHT }}
+        className="relative touch-none select-none w-full max-w-[400px] aspect-square"
       >
         <canvas
           ref={canvasRef}
           width={GAME_CONFIG.CANVAS_WIDTH}
           height={GAME_CONFIG.CANVAS_HEIGHT}
-          className="rounded-lg border border-white/10"
+          className="w-full h-full rounded-lg border border-white/10"
         />
 
         {/* Idle Overlay */}
@@ -658,7 +671,7 @@ export function Snake() {
             <p className="text-white/60 mb-8">Modern Classic</p>
             <button
               onClick={() => startRun(false)}
-              className="px-8 py-3 bg-[#00ff88] text-black font-bold rounded-lg hover:bg-[#00cc6a] transition-colors"
+              className="min-h-[44px] px-8 py-3 bg-[#00ff88] text-black font-bold rounded-lg hover:bg-[#00cc6a] transition-colors"
             >
               Play
             </button>
@@ -674,7 +687,7 @@ export function Snake() {
             <h2 className="text-3xl font-bold text-white mb-4">PAUSED</h2>
             <button
               onClick={handlePauseToggle}
-              className="px-8 py-3 bg-[#00ff88] text-black font-bold rounded-lg hover:bg-[#00cc6a] transition-colors"
+              className="min-h-[44px] px-8 py-3 bg-[#00ff88] text-black font-bold rounded-lg hover:bg-[#00cc6a] transition-colors"
             >
               Resume
             </button>
@@ -718,7 +731,7 @@ export function Snake() {
             <div className="flex flex-col gap-3 w-full max-w-xs">
             <button
                 onClick={() => startRun(true)}
-                className="px-8 py-3 bg-[#00ff88] text-black font-bold rounded-lg hover:bg-[#00cc6a] transition-colors"
+                className="min-h-[44px] px-8 py-3 bg-[#00ff88] text-black font-bold rounded-lg hover:bg-[#00cc6a] transition-colors"
               >
                 Nochmal
               </button>
@@ -745,7 +758,7 @@ export function Snake() {
 
       {/* Stats Bar */}
       {gameState.status === 'playing' && (
-        <div className="mt-4 flex gap-8 text-sm text-white/60">
+        <div className="mt-4 flex gap-6 text-sm text-white/60 flex-wrap justify-center">
           <div>
             Length: <span className="text-white">{gameState.snake.length}</span>
           </div>
@@ -755,6 +768,54 @@ export function Snake() {
           <div>
             Time: <span className="text-white">{formatTime(gameState.survivalTime)}</span>
           </div>
+        </div>
+      )}
+
+      {isTouchDevice && (
+        <div className="mt-4 grid grid-cols-3 gap-2 w-full max-w-[220px]">
+          <div />
+          <button
+            className="min-h-[44px] rounded-lg bg-white/10 text-white"
+            onClick={() => handleDirectionChange('up')}
+            disabled={gameState.status !== 'playing'}
+            aria-label="Move up"
+          >
+            ↑
+          </button>
+          <div />
+          <button
+            className="min-h-[44px] rounded-lg bg-white/10 text-white"
+            onClick={() => handleDirectionChange('left')}
+            disabled={gameState.status !== 'playing'}
+            aria-label="Move left"
+          >
+            ←
+          </button>
+          <button
+            className="min-h-[44px] rounded-lg bg-white/10 text-white text-xs"
+            onClick={handlePauseToggle}
+            disabled={gameState.status === 'idle' || gameState.status === 'gameover'}
+          >
+            Pause
+          </button>
+          <button
+            className="min-h-[44px] rounded-lg bg-white/10 text-white"
+            onClick={() => handleDirectionChange('right')}
+            disabled={gameState.status !== 'playing'}
+            aria-label="Move right"
+          >
+            →
+          </button>
+          <div />
+          <button
+            className="min-h-[44px] rounded-lg bg-white/10 text-white"
+            onClick={() => handleDirectionChange('down')}
+            disabled={gameState.status !== 'playing'}
+            aria-label="Move down"
+          >
+            ↓
+          </button>
+          <div />
         </div>
       )}
 

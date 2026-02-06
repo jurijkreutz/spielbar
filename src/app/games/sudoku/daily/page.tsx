@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { SudokuDailyGame } from '@/games';
 import { TrackedLink } from '@/components/platform/TrackedLink';
 import SiteFooter from '@/components/platform/SiteFooter';
+import { StorageNotice } from '@/components/platform/StorageNotice';
 
 export const metadata = {
   title: 'Daily Sudoku | Spielbar',
@@ -14,7 +15,7 @@ export default function DailySudokuPage() {
       {/* Header */}
       <header className="bg-white dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-4">
               <TrackedLink
                 href="/"
@@ -38,7 +39,8 @@ export default function DailySudokuPage() {
       {/* Game Area */}
       <section className="py-8">
         <div className="max-w-4xl mx-auto px-4">
-          <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 p-6 shadow-sm">
+          <StorageNotice />
+          <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-zinc-200 dark:border-zinc-700 p-3 sm:p-6 shadow-sm">
             <SudokuDailyGame />
           </div>
         </div>

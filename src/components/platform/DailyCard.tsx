@@ -3,21 +3,10 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { analytics } from '@/lib/analytics';
+import { getPlayerId } from '@/lib/playerId';
 
 interface DailyCardProps {
   game: 'minesweeper' | 'sudoku';
-}
-
-const PLAYER_ID_KEY = 'spielbar-player-id';
-
-function getPlayerId(): string {
-  if (typeof window === 'undefined') return '';
-  let id = localStorage.getItem(PLAYER_ID_KEY);
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem(PLAYER_ID_KEY, id);
-  }
-  return id;
 }
 
 function getTodayDateString(): string {

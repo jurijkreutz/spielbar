@@ -56,7 +56,7 @@ export function InfoTooltip({
       <button
         type="button"
         onClick={toggleTooltip}
-        className="h-5 w-5 rounded-full border border-zinc-300 text-[11px] font-bold text-zinc-500 hover:text-zinc-700 hover:border-zinc-400 transition-colors"
+        className="h-10 w-10 sm:h-6 sm:w-6 rounded-full border border-zinc-300 text-xs font-bold text-zinc-500 hover:text-zinc-700 hover:border-zinc-400 transition-colors"
         aria-label="Info"
         aria-describedby={open ? id : undefined}
       >

@@ -28,15 +28,15 @@ export function Header({
   onNewGame,
 }: HeaderProps) {
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+    <div className="flex flex-col items-center justify-between gap-4 mb-6 w-full">
       {/* Schwierigkeit */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap justify-center">
         {(Object.keys(DIFFICULTY_CONFIG) as Difficulty[]).map(diff => (
           <button
             key={diff}
             onClick={() => onDifficultyChange(diff)}
             className={`
-              px-3 py-1.5 rounded-lg text-sm font-medium
+              min-h-[40px] px-3 py-2 rounded-lg text-sm font-medium
               transition-all duration-100
               ${difficulty === diff
                 ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900'
@@ -50,7 +50,7 @@ export function Header({
       </div>
 
       {/* Stats */}
-      <div className="flex items-center gap-4 text-zinc-600 dark:text-zinc-400">
+      <div className="flex items-center gap-3 sm:gap-4 text-zinc-600 dark:text-zinc-400 flex-wrap justify-center">
         {/* Timer */}
         <div className="flex items-center gap-2">
           <span className="text-lg">⏱️</span>
@@ -73,7 +73,7 @@ export function Header({
         {/* Neues Spiel */}
         <button
           onClick={onNewGame}
-          className="px-3 py-1.5 rounded-lg text-sm font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+          className="min-h-[40px] px-3 py-2 rounded-lg text-sm font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
         >
           🔄 Neu
         </button>
@@ -100,4 +100,3 @@ export function Header({
     </div>
   );
 }
-

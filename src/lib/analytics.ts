@@ -1,6 +1,8 @@
 // Event Tracking System für Spielbar
 // Konzeptionelle Messbarkeit - kann später an Analytics-Tool angebunden werden
 
+import { readStorage, writeStorage } from './safeStorage';
+
 export type EventName =
   | 'landing_view'
   | 'cta_play_today_click'
@@ -232,18 +234,16 @@ function getDateKeyUTC(date: Date): string {
 }
 
 export function setLastPlayed(entry: LastPlayedEntry) {
-  if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(LAST_PLAYED_KEY, JSON.stringify(entry));
+    writeStorage('local', LAST_PLAYED_KEY, JSON.stringify(entry));
   } catch {
     // Ignore storage errors
   }
 }
 
 export function getLastPlayed(): LastPlayedEntry | null {
-  if (typeof window === 'undefined') return null;
   try {
-    const stored = localStorage.getItem(LAST_PLAYED_KEY);
+    const stored = readStorage('local', LAST_PLAYED_KEY);
     if (!stored) return null;
     const parsed = JSON.parse(stored) as LastPlayedEntry;
 
@@ -265,9 +265,8 @@ export function getLastPlayed(): LastPlayedEntry | null {
 }
 
 export function getDailyStatus(): DailyStatus {
-  if (typeof window === 'undefined') return {};
   try {
-    const stored = localStorage.getItem(DAILY_STATUS_KEY);
+    const stored = readStorage('local', DAILY_STATUS_KEY);
     return stored ? JSON.parse(stored) : {};
   } catch {
     return {};
@@ -278,7 +277,6 @@ export function setDailyCompleted(
   game: 'minesweeper' | 'sudoku',
   data: { time?: number; usedHints?: boolean }
 ) {
-  if (typeof window === 'undefined') return;
   try {
     const status = getDailyStatus();
     const today = getTodayKey();
@@ -286,7 +284,7 @@ export function setDailyCompleted(
       status[today] = {};
     }
     status[today][game] = { completed: true, ...data };
-    localStorage.setItem(DAILY_STATUS_KEY, JSON.stringify(status));
+    writeStorage('local', DAILY_STATUS_KEY, JSON.stringify(status));
     markDailyPlayed(today);
   } catch {
     // Ignore storage errors
@@ -308,9 +306,8 @@ export function getTodaysDailyInfo(game: 'minesweeper' | 'sudoku') {
 type DailyPlayed = Record<string, boolean>;
 
 function getDailyPlayed(): DailyPlayed {
-  if (typeof window === 'undefined') return {};
   try {
-    const stored = localStorage.getItem(DAILY_PLAYED_KEY);
+    const stored = readStorage('local', DAILY_PLAYED_KEY);
     return stored ? JSON.parse(stored) : {};
   } catch {
     return {};
@@ -318,11 +315,10 @@ function getDailyPlayed(): DailyPlayed {
 }
 
 export function markDailyPlayed(dateKey: string = getTodayKey()) {
-  if (typeof window === 'undefined') return;
   try {
     const played = getDailyPlayed();
     played[dateKey] = true;
-    localStorage.setItem(DAILY_PLAYED_KEY, JSON.stringify(played));
+    writeStorage('local', DAILY_PLAYED_KEY, JSON.stringify(played));
   } catch {
     // Ignore storage errors
   }

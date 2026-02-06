@@ -10,6 +10,7 @@ type BoardProps = {
   onCellClick: (row: number, col: number) => void;
   onCellRightClick: (row: number, col: number) => void;
   onChordClick: (row: number, col: number) => void;
+  cellSize?: number;
   highlightedCells?: Set<string>;
   proofTargetCell?: [number, number];
   proofType?: 'safe' | 'mine' | 'guess';
@@ -22,6 +23,7 @@ export function Board({
   onCellClick,
   onCellRightClick,
   onChordClick,
+  cellSize = 28,
   highlightedCells,
   proofTargetCell,
   proofType,
@@ -98,6 +100,7 @@ export function Board({
                   onClick={() => onCellClick(rowIndex, colIndex)}
                   onRightClick={() => onCellRightClick(rowIndex, colIndex)}
                   onMiddleClick={() => onChordClick(rowIndex, colIndex)}
+                  size={cellSize}
                   gameOver={gameOver}
                   isHighlighted={isHighlighted}
                   isProofTarget={isProofTarget}
