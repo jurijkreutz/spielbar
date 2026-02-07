@@ -46,6 +46,9 @@ Weitere Spiele sind bereits in Entwicklung. Schaut regelmäßig vorbei!
   },
 ];
 
+const DEFAULT_ADMIN_EMAIL = 'admin@spielbar.at';
+const DEFAULT_ADMIN_PASSWORD = 'admin123';
+
 function parseSeedNews(raw: unknown): SeedNewsEntry[] {
   if (!Array.isArray(raw)) {
     return [];
@@ -93,23 +96,45 @@ async function loadSeedNews(): Promise<SeedNewsEntry[]> {
   }
 }
 
+function getInitialAdminPassword(): string {
+  const password = process.env.ADMIN_INITIAL_PASSWORD;
+  if (typeof password === 'string' && password.length > 0) {
+    return password;
+  }
+  return DEFAULT_ADMIN_PASSWORD;
+}
+
 async function main() {
 
   try {
     // Admin User erstellen
-    const hashedPassword = await bcrypt.hash('admin123', 12);
-
-    const admin = await prisma.user.upsert({
-      where: { email: 'admin@spielbar.at' },
-      update: {},
-      create: {
-        email: 'admin@spielbar.at',
-        password: hashedPassword,
-        name: 'Admin',
-      },
+    const existingAdmin = await prisma.user.findUnique({
+      where: { email: DEFAULT_ADMIN_EMAIL },
+      select: { email: true },
     });
 
-    console.log('✅ Admin user created:', admin.email);
+    if (!existingAdmin) {
+      const initialAdminPassword = getInitialAdminPassword();
+      const hashedPassword = await bcrypt.hash(initialAdminPassword, 12);
+
+      const admin = await prisma.user.create({
+        data: {
+          email: DEFAULT_ADMIN_EMAIL,
+          password: hashedPassword,
+          name: 'Admin',
+        },
+      });
+
+      console.log('✅ Admin user created:', admin.email);
+
+      if (!process.env.ADMIN_INITIAL_PASSWORD) {
+        console.warn(
+          '⚠️ ADMIN_INITIAL_PASSWORD ist nicht gesetzt. Es wurde das Standardpasswort verwendet.'
+        );
+      }
+    } else {
+      console.log('ℹ️ Admin user exists, password unchanged:', existingAdmin.email);
+    }
 
     // Minesweeper als erstes Spiel
     const minesweeper = await prisma.game.upsert({

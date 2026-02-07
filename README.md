@@ -375,9 +375,9 @@ http://localhost:3000/admin/login
 | Feld     | Wert                    |
 |----------|-------------------------|
 | E-Mail   | `admin@spielbar.at`   |
-| Passwort | `admin123`              |
+| Passwort | `admin123` *(nur Initialwert beim ersten Seed ohne `ADMIN_INITIAL_PASSWORD`)* |
 
-> ⚠️ **Wichtig:** Ändere das Passwort in der Produktion!
+> ⚠️ **Wichtig:** Passwort nach dem ersten Login im Dashboard unter **Sicherheit** ändern.
 
 ### Admin-Funktionen
 
@@ -386,6 +386,7 @@ Nach dem Login hast du Zugriff auf:
 - **Dashboard** (`/admin`) – Übersicht & Statistiken
 - **Spiele verwalten** (`/admin/games`) – Spiele anlegen, bearbeiten, sortieren
 - **News verwalten** (`/admin/news`) – News-Beiträge erstellen & veröffentlichen
+- **Passwort ändern** (`/admin`) – Admin-Passwort im Bereich **Sicherheit** ändern
 
 ---
 
@@ -500,6 +501,13 @@ Damit News beim Push in Prod ankommen:
 4. In Prod `npx prisma migrate deploy && npm run db:seed` ausführen
 
 `db:seed` spielt die News aus `prisma/seed-data/news.json` idempotent per Upsert ein.
+
+### Render-Hinweis (wichtig für Passwort-Persistenz)
+
+- Der Seed erstellt den Admin-Benutzer nur, wenn noch keiner existiert. Ein geändertes Passwort wird bei späteren `db:seed`-Runs nicht überschrieben.
+- Damit das auch nach Deploys so bleibt, muss die Produktiv-Datenbank persistent sein.
+- Bei SQLite auf Render: `DATABASE_URL` auf einen Pfad im Persistent Disk Mount setzen (z. B. `file:/var/data/spielbar.db`).
+- Wenn Render bei jedem Deploy eine frische DB bekommt, wird natürlich auch der Admin wieder neu angelegt (inkl. Initialpasswort).
 
 ### Datenbank-Modelle
 

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import AdminHeader from '@/components/admin/AdminHeader';
+import AdminPasswordForm from '@/components/admin/AdminPasswordForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -107,6 +108,11 @@ export default async function AdminDashboard() {
             </p>
           </Link>
         </div>
+
+        <section className="mt-10 max-w-xl">
+          <h3 className="text-lg font-semibold text-zinc-900 mb-4">Sicherheit</h3>
+          <AdminPasswordForm />
+        </section>
       </main>
     </div>
   );
