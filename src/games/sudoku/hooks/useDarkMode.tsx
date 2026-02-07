@@ -7,50 +7,40 @@ type Theme = 'light' | 'dark';
 
 const THEME_STORAGE_KEY = 'sudoku-theme';
 
+function getInitialTheme(): Theme {
+  if (typeof window === 'undefined') {
+    return 'light';
+  }
+
+  const stored = readStorage('local', THEME_STORAGE_KEY) as Theme | null;
+  if (stored && (stored === 'light' || stored === 'dark')) {
+    return stored;
+  }
+
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
 export function useDarkMode() {
-  const [theme, setThemeState] = useState<Theme>('light');
-  const [mounted, setMounted] = useState(false);
+  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
-    setMounted(true);
-    const stored = readStorage('local', THEME_STORAGE_KEY) as Theme | null;
-    if (stored && (stored === 'light' || stored === 'dark')) {
-      setThemeState(stored);
-      document.documentElement.classList.toggle('dark', stored === 'dark');
-    } else {
-      // Prüfe System-Präferenz
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setThemeState(prefersDark ? 'dark' : 'light');
-      document.documentElement.classList.toggle('dark', prefersDark);
-    }
-  }, []);
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     writeStorage('local', THEME_STORAGE_KEY, newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
   };
 
   const toggleTheme = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
   };
 
-  return { theme, setTheme, toggleTheme, mounted };
+  return { theme, setTheme, toggleTheme };
 }
 
 export function DarkModeToggle() {
-  const { theme, toggleTheme, mounted } = useDarkMode();
-
-  if (!mounted) {
-    return (
-      <button
-        className="h-10 w-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center"
-        aria-label="Theme umschalten"
-      >
-        <span className="text-lg">🌙</span>
-      </button>
-    );
-  }
+  const { theme, toggleTheme } = useDarkMode();
 
   return (
     <button
