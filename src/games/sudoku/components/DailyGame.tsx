@@ -11,6 +11,7 @@ import { analytics, setDailyCompleted, setDailyStarted } from '@/lib/analytics';
 import { Loader } from '@/components/platform/Loader';
 import { TrackedLink } from '@/components/platform/TrackedLink';
 import { getPlayerId } from '@/lib/playerId';
+import { clearDailyProgress, readDailyProgress, writeDailyProgress } from '@/lib/dailyProgressStorage';
 
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
@@ -29,6 +30,84 @@ type DailySudokuData = {
     moves: number | null;
   } | null;
 };
+
+type DailyProgressCell = {
+  value: number;
+  notes: number[];
+};
+
+type DailyProgressData = {
+  version: 1;
+  time: number;
+  moveCount: number;
+  notesMode: boolean;
+  isPlaying: boolean;
+  selectedCell: Position | null;
+  board: DailyProgressCell[][];
+};
+
+function hasPlayerProgress(board: SudokuBoard): boolean {
+  return board.some((row) => row.some((cell) => !cell.isGiven && (cell.value !== 0 || cell.notes.size > 0)));
+}
+
+function isValidStoredProgress(value: unknown): value is DailyProgressData {
+  if (!value || typeof value !== 'object') return false;
+
+  const progress = value as Partial<DailyProgressData>;
+  if (progress.version !== 1) return false;
+  if (!Number.isFinite(progress.time) || (progress.time ?? 0) < 0) return false;
+  if (!Number.isFinite(progress.moveCount) || (progress.moveCount ?? 0) < 0) return false;
+  if (typeof progress.notesMode !== 'boolean') return false;
+  if (typeof progress.isPlaying !== 'boolean') return false;
+
+  const selectedCell = progress.selectedCell;
+  if (selectedCell !== null) {
+    if (!selectedCell || typeof selectedCell !== 'object') return false;
+    if (!Number.isInteger(selectedCell.row) || selectedCell.row < 0 || selectedCell.row > 8) return false;
+    if (!Number.isInteger(selectedCell.col) || selectedCell.col < 0 || selectedCell.col > 8) return false;
+  }
+
+  if (!Array.isArray(progress.board) || progress.board.length !== 9) return false;
+  for (const row of progress.board) {
+    if (!Array.isArray(row) || row.length !== 9) return false;
+    for (const cell of row) {
+      if (!cell || typeof cell !== 'object') return false;
+      const dynamicCell = cell as Partial<DailyProgressCell>;
+      const value = dynamicCell.value;
+      const notes = dynamicCell.notes;
+      if (!Number.isInteger(value) || value < 0 || value > 9) return false;
+      if (!Array.isArray(notes)) return false;
+      if (notes.some((note) => !Number.isInteger(note) || note < 1 || note > 9)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+function applyStoredProgress(baseBoard: SudokuBoard, progress: DailyProgressData): SudokuBoard {
+  return baseBoard.map((row, r) =>
+    row.map((cell, c) => {
+      if (cell.isGiven) {
+        return {
+          ...cell,
+          notes: new Set<number>(),
+        };
+      }
+
+      const dynamicCell = progress.board[r][c];
+      const value = dynamicCell.value as CellValue;
+      const notes = value === 0 ? new Set<number>(dynamicCell.notes) : new Set<number>();
+
+      return {
+        ...cell,
+        value,
+        notes,
+      };
+    })
+  );
+}
 
 export function DailyGame() {
   const [loading, setLoading] = useState(true);
@@ -50,6 +129,7 @@ export function DailyGame() {
     async function loadDaily() {
       try {
         setLoading(true);
+        setError(null);
         const date = getTodayDateString();
         const res = await fetch(`/api/daily/sudoku?date=${date}&playerId=${playerId}`);
 
@@ -59,24 +139,61 @@ export function DailyGame() {
 
         const data: DailySudokuData = await res.json();
         setDailyData(data);
+        setAlreadyCompleted(false);
+        setIsComplete(false);
+
+        const freshBoard = createBoardFromData(data.puzzle);
 
         // Check if already completed
         if (data.attempt?.completed) {
           setAlreadyCompleted(true);
           setIsComplete(true);
-          if (data.attempt.time) setTime(data.attempt.time);
-          if (data.attempt.moves) setMoveCount(data.attempt.moves);
+          setIsPlaying(false);
+          setSelectedCell(null);
+          setNotesMode(false);
+          if (data.attempt.time !== null) setTime(data.attempt.time);
+          if (data.attempt.moves !== null) setMoveCount(data.attempt.moves);
 
           // Sync local Daily Hub status from persisted server attempt.
           setDailyCompleted('sudoku', {
             time: data.attempt.time ?? undefined,
             moves: data.attempt.moves ?? undefined,
           });
+          clearDailyProgress('sudoku', data.date, playerId);
+          setBoard(freshBoard);
+          return;
         }
 
-        // Create board
-        const newBoard = createBoardFromData(data.puzzle);
-        setBoard(newBoard);
+        const storedProgress = readDailyProgress<unknown>('sudoku', data.date, playerId);
+        if (isValidStoredProgress(storedProgress)) {
+          const resumedBoard = applyStoredProgress(freshBoard, storedProgress);
+          setBoard(resumedBoard);
+          setTime(storedProgress.time);
+          setMoveCount(storedProgress.moveCount);
+          setNotesMode(storedProgress.notesMode);
+          setSelectedCell(storedProgress.selectedCell);
+          setIsPlaying(storedProgress.isPlaying);
+
+          if (
+            storedProgress.isPlaying ||
+            storedProgress.moveCount > 0 ||
+            hasPlayerProgress(resumedBoard)
+          ) {
+            setDailyStarted('sudoku');
+          }
+          return;
+        }
+
+        if (storedProgress) {
+          clearDailyProgress('sudoku', data.date, playerId);
+        }
+
+        setBoard(freshBoard);
+        setSelectedCell(null);
+        setNotesMode(false);
+        setTime(0);
+        setIsPlaying(false);
+        setMoveCount(0);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Fehler beim Laden');
       } finally {
@@ -88,6 +205,44 @@ export function DailyGame() {
       loadDaily();
     }
   }, [playerId]);
+
+  useEffect(() => {
+    if (!dailyData || !playerId || !board) return;
+
+    if (alreadyCompleted || isComplete) {
+      clearDailyProgress('sudoku', dailyData.date, playerId);
+      return;
+    }
+
+    const shouldPersist =
+      isPlaying ||
+      time > 0 ||
+      moveCount > 0 ||
+      notesMode ||
+      selectedCell !== null ||
+      hasPlayerProgress(board);
+    if (!shouldPersist) {
+      clearDailyProgress('sudoku', dailyData.date, playerId);
+      return;
+    }
+
+    const payload: DailyProgressData = {
+      version: 1,
+      time,
+      moveCount,
+      notesMode,
+      isPlaying,
+      selectedCell,
+      board: board.map((row) =>
+        row.map((cell) => ({
+          value: cell.value,
+          notes: Array.from(cell.notes).sort((a, b) => a - b),
+        }))
+      ),
+    };
+
+    writeDailyProgress('sudoku', dailyData.date, playerId, payload);
+  }, [dailyData, playerId, board, alreadyCompleted, isComplete, isPlaying, time, moveCount, notesMode, selectedCell]);
 
   // Timer
   useEffect(() => {
@@ -183,6 +338,7 @@ export function DailyGame() {
     analytics.trackGameEnd('sudoku', 'daily', 'win', time);
     analytics.trackDailyComplete('sudoku', time, moveCount);
     setDailyCompleted('sudoku', { time, moves: moveCount });
+    clearDailyProgress('sudoku', dailyData.date, playerId);
 
     try {
       await fetch('/api/daily/sudoku', {
@@ -321,9 +477,9 @@ export function DailyGame() {
       {/* Header */}
       <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <span className="px-3 py-1 bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 text-sm font-bold rounded-full">
-            📅 TODAY&apos;S SUDOKU
-          </span>
+            <span className="px-3 py-1 bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 text-sm font-bold rounded-full">
+              📅 HEUTIGES SUDOKU
+            </span>
           <span className="text-sm text-zinc-500 dark:text-zinc-400">
             {new Date(dailyData.date).toLocaleDateString('de-AT', {
               weekday: 'long',
@@ -425,12 +581,13 @@ export function DailyGame() {
               >
                 Alle Spiele
               </TrackedLink>
-              <a
+              <TrackedLink
                 href="/games/minesweeper/daily"
-                className="min-h-[44px] px-6 py-2.5 text-sm font-medium text-amber-700 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors"
+                tracking={{ type: 'game_exit_to_overview', from: 'sudoku-daily' }}
+                className="min-h-[44px] px-6 py-2.5 text-sm font-medium text-amber-700 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors text-center"
               >
                 Daily Minesweeper spielen
-              </a>
+              </TrackedLink>
             </div>
           </div>
         </div>

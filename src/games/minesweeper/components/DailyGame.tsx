@@ -9,6 +9,7 @@ import { Loader } from '@/components/platform/Loader';
 import { InfoTooltip } from '@/components/platform/InfoTooltip';
 import { TrackedLink } from '@/components/platform/TrackedLink';
 import { getPlayerId } from '@/lib/playerId';
+import { clearDailyProgress, readDailyProgress, writeDailyProgress } from '@/lib/dailyProgressStorage';
 import type { CellState, GameState } from '../types/minesweeper';
 
 function getNeighbors(row: number, col: number, rows: number, cols: number): [number, number][] {
@@ -44,6 +45,67 @@ type DailyBoardData = {
 };
 
 type TouchActionMode = 'reveal' | 'flag' | 'chord';
+
+type DailyProgressCell = {
+  isRevealed: boolean;
+  isFlagged: boolean;
+};
+
+type DailyProgressData = {
+  version: 1;
+  gameState: 'idle' | 'playing';
+  time: number;
+  moves: number;
+  usedHints: boolean;
+  board: DailyProgressCell[][];
+};
+
+function hasBoardProgress(board: CellState[][]): boolean {
+  return board.some((row) => row.some((cell) => cell.isRevealed || cell.isFlagged));
+}
+
+function isValidStoredProgress(
+  value: unknown,
+  rows: number,
+  cols: number
+): value is DailyProgressData {
+  if (!value || typeof value !== 'object') return false;
+
+  const progress = value as Partial<DailyProgressData>;
+  if (progress.version !== 1) return false;
+  if (progress.gameState !== 'idle' && progress.gameState !== 'playing') return false;
+  if (!Number.isFinite(progress.time) || (progress.time ?? 0) < 0) return false;
+  if (!Number.isFinite(progress.moves) || (progress.moves ?? 0) < 0) return false;
+  if (typeof progress.usedHints !== 'boolean') return false;
+  if (!Array.isArray(progress.board) || progress.board.length !== rows) return false;
+
+  for (const row of progress.board) {
+    if (!Array.isArray(row) || row.length !== cols) return false;
+    for (const cell of row) {
+      if (!cell || typeof cell !== 'object') return false;
+      const dynamicCell = cell as Partial<DailyProgressCell>;
+      if (typeof dynamicCell.isRevealed !== 'boolean') return false;
+      if (typeof dynamicCell.isFlagged !== 'boolean') return false;
+    }
+  }
+
+  return true;
+}
+
+function applyStoredProgress(baseBoard: CellState[][], progress: DailyProgressData): CellState[][] {
+  return baseBoard.map((row, r) =>
+    row.map((cell, c) => {
+      const dynamic = progress.board[r][c];
+      const isRevealed = dynamic.isRevealed;
+      const isFlagged = !isRevealed && dynamic.isFlagged;
+      return {
+        ...cell,
+        isRevealed,
+        isFlagged,
+      };
+    })
+  );
+}
 
 export function DailyGame() {
   const [isTouchDevice, setIsTouchDevice] = useState(false);
@@ -91,6 +153,7 @@ export function DailyGame() {
     async function loadDaily() {
       try {
         setLoading(true);
+        setError(null);
         const date = getTodayDateString();
         const res = await fetch(`/api/daily?date=${date}&playerId=${playerId}`);
 
@@ -100,13 +163,16 @@ export function DailyGame() {
 
         const data: DailyBoardData = await res.json();
         setDailyData(data);
+        setAlreadyCompleted(false);
+
+        const freshBoard = createBoardFromPositions(data.rows, data.cols, data.minePositions);
 
         // Check if already completed
         if (data.attempt?.completed) {
           setAlreadyCompleted(true);
           setGameState(data.attempt.won ? 'won' : 'lost');
-          if (data.attempt.time) setTime(data.attempt.time);
-          if (data.attempt.moves) setMoves(data.attempt.moves);
+          if (data.attempt.time !== null) setTime(data.attempt.time);
+          if (data.attempt.moves !== null) setMoves(data.attempt.moves);
           if (data.attempt.usedHints) setUsedHints(true);
 
           // Sync local Daily Hub status from persisted server attempt.
@@ -115,11 +181,35 @@ export function DailyGame() {
             moves: data.attempt.moves ?? undefined,
             usedHints: data.attempt.usedHints,
           });
+          clearDailyProgress('minesweeper', data.date, playerId);
+          setBoard(freshBoard);
+          return;
         }
 
-        // Create board
-        const newBoard = createBoardFromPositions(data.rows, data.cols, data.minePositions);
-        setBoard(newBoard);
+        const storedProgress = readDailyProgress<unknown>('minesweeper', data.date, playerId);
+        if (isValidStoredProgress(storedProgress, data.rows, data.cols)) {
+          const resumedBoard = applyStoredProgress(freshBoard, storedProgress);
+          setBoard(resumedBoard);
+          setGameState(storedProgress.gameState);
+          setTime(storedProgress.time);
+          setMoves(storedProgress.moves);
+          setUsedHints(storedProgress.usedHints);
+
+          if (storedProgress.gameState === 'playing') {
+            setDailyStarted('minesweeper');
+          }
+          return;
+        }
+
+        if (storedProgress) {
+          clearDailyProgress('minesweeper', data.date, playerId);
+        }
+
+        setBoard(freshBoard);
+        setGameState('idle');
+        setTime(0);
+        setMoves(0);
+        setUsedHints(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Fehler beim Laden');
       } finally {
@@ -131,6 +221,38 @@ export function DailyGame() {
       loadDaily();
     }
   }, [playerId]);
+
+  useEffect(() => {
+    if (!dailyData || !playerId || !board) return;
+
+    if (alreadyCompleted || gameState === 'won' || gameState === 'lost') {
+      clearDailyProgress('minesweeper', dailyData.date, playerId);
+      return;
+    }
+
+    const shouldPersist =
+      gameState === 'playing' || time > 0 || moves > 0 || usedHints || hasBoardProgress(board);
+    if (!shouldPersist) {
+      clearDailyProgress('minesweeper', dailyData.date, playerId);
+      return;
+    }
+
+    const payload: DailyProgressData = {
+      version: 1,
+      gameState: gameState === 'playing' ? 'playing' : 'idle',
+      time,
+      moves,
+      usedHints,
+      board: board.map((row) =>
+        row.map((cell) => ({
+          isRevealed: cell.isRevealed,
+          isFlagged: cell.isFlagged,
+        }))
+      ),
+    };
+
+    writeDailyProgress('minesweeper', dailyData.date, playerId, payload);
+  }, [dailyData, playerId, board, gameState, time, moves, usedHints, alreadyCompleted]);
 
   // Timer
   useEffect(() => {
@@ -192,6 +314,7 @@ export function DailyGame() {
     analytics.trackGameEnd('minesweeper', 'daily', won ? 'win' : 'lose', time);
     analytics.trackDailyComplete('minesweeper', time, moves, usedHints);
     setDailyCompleted('minesweeper', { time, moves, usedHints });
+    clearDailyProgress('minesweeper', dailyData.date, playerId);
 
     try {
       await fetch('/api/daily', {
@@ -426,7 +549,7 @@ export function DailyGame() {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return mins > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : `${secs}s`;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   // Difficulty labels
@@ -463,45 +586,41 @@ export function DailyGame() {
   return (
     <div className="flex flex-col items-center w-full">
       {/* Daily Header */}
-      <div className="mb-6 text-center px-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-sm font-medium mb-2">
-          📅 Heute
-        </div>
-        <h2 className="text-xl font-bold text-zinc-900">Daily Minesweeper</h2>
-        <p className="text-sm text-zinc-500 mt-1">
-          {new Date(dailyData.date).toLocaleDateString('de-AT', {
-            weekday: 'long',
-            day: 'numeric',
-            month: 'long',
-          })}
-          {' • '}
-          <span className={`font-medium ${
-            dailyData.difficulty === 'easy' ? 'text-green-600' :
-            dailyData.difficulty === 'medium' ? 'text-amber-600' : 'text-red-600'
-          }`}>
-            {difficultyLabels[dailyData.difficulty] || dailyData.difficulty}
-          </span>
-        </p>
-        {dailyData.verified && (
-          <p className="text-xs text-emerald-600 mt-1">
-            ✓ Garantiert logisch lösbar
-          </p>
-        )}
-      </div>
+      <div className="mb-5 w-full flex flex-col gap-2">
+        <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="px-3 py-1 bg-amber-200 text-amber-800 text-sm font-bold rounded-full">
+              📅 HEUTIGES MINESWEEPER
+            </span>
+            <span className="text-sm text-zinc-500">
+              {new Date(dailyData.date).toLocaleDateString('de-AT', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+              })}
+              <span className={`ml-2 font-medium ${
+                dailyData.difficulty === 'easy' ? 'text-green-600' :
+                dailyData.difficulty === 'medium' ? 'text-amber-600' : 'text-red-600'
+              }`}>
+                {difficultyLabels[dailyData.difficulty] || dailyData.difficulty}
+              </span>
+            </span>
+          </div>
 
-      {/* Game Stats Bar */}
-      <div className="flex items-center justify-center gap-4 sm:gap-6 mb-4 px-4 py-2 bg-zinc-100 rounded-lg flex-wrap w-full max-w-md">
-        <div className="text-center">
-          <p className="text-xs text-zinc-500">Minen</p>
-          <p className="font-mono font-bold text-zinc-900">{minesRemaining}</p>
-        </div>
-        <div className="text-center">
-          <p className="text-xs text-zinc-500">Zeit</p>
-          <p className="font-mono font-bold text-zinc-900">{formatTime(time)}</p>
-        </div>
-        <div className="text-center">
-          <p className="text-xs text-zinc-500">Züge</p>
-          <p className="font-mono font-bold text-zinc-900">{moves}</p>
+          <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-center">
+            <div className="flex items-center gap-2 text-zinc-600">
+              <span>💣</span>
+              <span className="font-mono text-lg tabular-nums">{minesRemaining}</span>
+            </div>
+            <div className="flex items-center gap-2 text-zinc-600">
+              <span>⏱️</span>
+              <span className="font-mono text-lg tabular-nums">{formatTime(time)}</span>
+            </div>
+            <div className="flex items-center gap-2 text-zinc-600">
+              <span>📝</span>
+              <span className="font-mono text-lg tabular-nums">{moves}</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -656,12 +775,13 @@ export function DailyGame() {
             >
               Alle Spiele
             </TrackedLink>
-            <a
+            <TrackedLink
               href="/games/sudoku/daily"
+              tracking={{ type: 'game_exit_to_overview', from: 'minesweeper-daily' }}
               className="px-6 py-2.5 text-sm font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
             >
               Daily Sudoku spielen
-            </a>
+            </TrackedLink>
           </div>
         </div>
       )}
